@@ -29,7 +29,7 @@ UNCLOSED_CADEIA:
 // =========================== COMMENT HANDLING =============================
 
 COMMENT:
-    '{' ~('\n' | '\r')* '}' { skip(); };
+    '{' ~( '}' | '\n' | '\r')* '}' { skip(); };
 
 // this results in an error
 UNCLOSED_COMMENT:

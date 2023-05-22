@@ -48,13 +48,13 @@ public class Principal {
 
         if (tokenType == "UNIDENTIFIED_SYMBOL")
             errorMessage = "Linha " + token.getLine() + ": " +
-                            token.getText() + " - simbolo nao identificado";
+                            token.getText() + " - simbolo nao identificado\n";
 
         else if (tokenType == "UNCLOSED_COMMENT")
-            errorMessage = "Linha " + token.getLine() + ": comentario nao fechado";
+            errorMessage = "Linha " + token.getLine() + ": comentario nao fechado\n";
 
         else if (tokenType == "UNCLOSED_CADEIA")
-            errorMessage = "Linha " + token.getLine() + ": cadeia literal nao fechada";
+            errorMessage = "Linha " + token.getLine() + ": cadeia literal nao fechada\n";
         
         return errorMessage;
     }
