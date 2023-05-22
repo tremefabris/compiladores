@@ -1,5 +1,7 @@
 lexer grammar AlgumaLexer;
 
+// =========================== RESERVED KEYWORDS AND IDENTIFIERS =============================
+
 PALAVRA_CHAVE:
     'algoritmo' | 'declare' | 'literal' | 'inteiro' | 'leia' | 'escreva' | 'fim_algoritmo' |
     'real' | 'logico' | 'e' | 'ou' | 'nao' | 'se' | 'entao' | 'senao' | 'fim_se' | 'caso' |
@@ -20,6 +22,7 @@ ESC_SEQ:
 CADEIA:
     '"' ( ESC_SEQ | ~( '"' | '\\' | '\n' | '\r') )* '"';
 
+// this results in an error
 UNCLOSED_CADEIA:
     '"' (~( '"' | '\n' | '\r' ))* ('\n' | '\r');
 
@@ -28,8 +31,11 @@ UNCLOSED_CADEIA:
 COMMENT:
     '{' ~('\n' | '\r')* '}' { skip(); };
 
+// this results in an error
 UNCLOSED_COMMENT:
     '{' ~( '}' | '\n' | '\r' )* ('\n' | '\r');
+
+// =========================== NUMBER HANDLING =============================
 
 NUM_INT:
     ('0'..'9')+;
@@ -37,23 +43,7 @@ NUM_INT:
 NUM_REAL:
     ('0'..'9')+ '.' ('0'..'9')+;
 
-ARIT_OP:
-    ( SUM | SUB | MULT | DIV | MOD);
-
-RELAC_OP:
-    ( EQU | NEQ | LSS | GTR | GEQ | LEQ );
-
-INDEX_OP:
-    '[' | ']';
-
-SEPARATION_SYMBOL:
-    ( DELIM | ABREPAR | FECHAPAR | VIRGULA | ATRIBUTION );
-
-IGNORABLE_SYMBOL:
-    ( WHITE_SPACE | ENDLINE | TAB ) { skip(); };
-
-// =========================== FRAGMENTS FOR ABOVE DEFINITIONS =============================
-// and below everything the "catch all else as error" rule
+// =========================== ARITHMETIC OPERATIONS =============================
 
 fragment
 MULT:
@@ -74,6 +64,11 @@ DIV:
 fragment
 MOD:
     '%';
+
+ARIT_OP:
+    ( SUM | SUB | MULT | DIV | MOD);
+
+// =========================== RELATIONAL OPERATIONS =============================
 
 fragment
 EQU:
@@ -99,6 +94,17 @@ fragment
 LEQ:
     '<=';
 
+RELAC_OP:
+    ( EQU | NEQ | LSS | GTR | GEQ | LEQ );
+
+// =========================== ARRAY INDEXING OPERATIONS =============================
+
+INDEX_OP:
+    '[' | ']';
+
+// =========================== SYMBOLS THAT SEPARATE STATEMENTS =============================
+// we couldn't think of a better name for them
+
 fragment
 DELIM:
     ':';
@@ -119,6 +125,11 @@ fragment
 ATRIBUTION:
     '<-';
 
+SEPARATION_SYMBOL:
+    ( DELIM | ABREPAR | FECHAPAR | VIRGULA | ATRIBUTION );
+
+// =========================== IGNORED SYMBOLS =============================
+
 fragment
 WHITE_SPACE:
     ' ';
@@ -131,11 +142,11 @@ fragment
 TAB:
     '\t';
 
+IGNORABLE_SYMBOL:
+    ( WHITE_SPACE | ENDLINE | TAB ) { skip(); };
+
+// =========================== UNIDENTIFIED SYMBOLS =============================
+// if all else failed, this lexical rule catches it
+
 UNIDENTIFIED_SYMBOL:
-    . {
-        // segundo o Lucredio, nao deve ser tratado aqui
-        // throw new Exception("UNIDENTIFIED_SYMBOL");
-        // System.out.println("Linha " + getLine() + ": " + getText() + " - simbolo nao identificado" );
-        // skip();
-        // System.exit(0);
-    };
+    .;
