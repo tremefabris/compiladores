@@ -28,13 +28,6 @@ public class Principal {
         }
     }
 
-    static boolean isPartOfGrammaticalRule(String tokenType, String[] ruleArray) {
-        for (String rule: ruleArray)
-            if (tokenType == rule)
-                return true;
-        return false;
-    }
-
     static String checkForLexicalError(Token token, String tokenType) {
         String errorMessage = null;
         if (tokenType == "UNIDENTIFIED_SYMBOL")
@@ -52,17 +45,7 @@ public class Principal {
 
     public static void main(String[] args) {
         try{
-
             String errorMessage = null;
-
-            // Initialize this somewhere else
-            String[] specialRules = {
-                "PALAVRA_CHAVE",       // Keywords
-                "SEPARATION_SYMBOL",   // Symbols that separate statements and expressions
-                "ARIT_OP",             // Arithmetic operations
-                "RELAC_OP",            // Relational operations
-                "INDEX_OP"             // Indexing operations
-            };
 
             CharStream cs = CharStreams.fromFileName(args[0]);
             AlgumaLexer lex = new AlgumaLexer(cs);
@@ -88,8 +71,19 @@ public class Principal {
                     break;
                 }
 
-
-                if (isPartOfGrammaticalRule(tokenType, specialRules)) {
+                /**
+                 * TODO: WRITE COMMENT
+                 * 
+                 * Handling rules with special print-outs
+                 */
+                if  (
+                    tokenType == "PALAVRA_CHAVE"     ||  // Keywords
+                    tokenType == "SEPARATION_SYMBOL" ||  // Symbols that separate statements and expressions
+                    tokenType == "ARIT_OP"           ||  // Arithmetic operations
+                    tokenType == "RELAC_OP"          ||  // Relational operations
+                    tokenType == "INDEX_OP"              // Array indexing symbols
+                    )
+                {
                     tokenType = tokenText;
                 }
                 

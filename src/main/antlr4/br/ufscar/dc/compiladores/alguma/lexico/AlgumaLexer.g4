@@ -5,16 +5,13 @@ PALAVRA_CHAVE:
     'real' | 'logico' | 'e' | 'ou' | 'nao' | 'se' | 'entao' | 'senao' | 'fim_se' | 'caso' |
     'seja' | '..' | 'fim_caso' | 'constante' | 'tipo' | 'registro' | 'fim_registro' |
     'procedimento' | 'fim_procedimento' | 'var' | '.' | 'funcao' | 'retorne' | 'fim_funcao' |
-    'para' | 'ate' | 'faca' | 'fim_para' | 'enquanto' | 'fim_enquanto' | '^';
+    'para' | 'ate' | 'faca' | 'fim_para' | 'enquanto' | 'fim_enquanto' | '^' | '&' |
+    'verdadeiro' | 'falso';
 
 IDENT:
-    ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z' | '0'..'9')*;
+    ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
 
 // =========================== CADEIA DE LITERAIS HANDLING =============================
-
-// this needs work
-UNCLOSED_CADEIA:
-    '"' (~( '"' | '\n' | '\r' ))* ('\n' | '\r');
 
 fragment
 ESC_SEQ:
@@ -22,6 +19,9 @@ ESC_SEQ:
 
 CADEIA:
     '"' ( ESC_SEQ | ~( '"' | '\\' | '\n' | '\r') )* '"';
+
+UNCLOSED_CADEIA:
+    '"' (~( '"' | '\n' | '\r' ))* ('\n' | '\r');
 
 // =========================== COMMENT HANDLING =============================
 
