@@ -14,14 +14,14 @@ IDENT:
 
 // this needs work
 UNCLOSED_CADEIA:
-    '"' (~( '"' ))* ('\n' | '\r');
+    '"' (~( '"' | '\n' | '\r' ))* ('\n' | '\r');
 
 fragment
 ESC_SEQ:
     '\\"';
 
 CADEIA:
-    '"' ( ESC_SEQ | ~( '"' | '\\' ) )* '"';
+    '"' ( ESC_SEQ | ~( '"' | '\\' | '\n' | '\r') )* '"';
 
 // =========================== COMMENT HANDLING =============================
 
