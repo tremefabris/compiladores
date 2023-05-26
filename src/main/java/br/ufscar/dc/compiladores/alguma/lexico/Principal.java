@@ -3,8 +3,6 @@ package br.ufscar.dc.compiladores.alguma.lexico;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
