@@ -28,6 +28,6 @@ O arquivo `analisador-lexico.jar` (distribuído na raíz) representa o analisado
 java -jar analisador-lexico.jar /path/to/example/program /path/to/output/file
 ```
 
-Lembrando que é necessário que o arquivo de código `/path/to/example/program` exista. Se `/path/to/output/file` não existir, será criado pelo programa.
+Lembrando que é necessário que o arquivo de código `/path/to/example/program` exista e seja compatível. Se `/path/to/output/file` não existir, será criado pelo programa.
 
 É possível fazer uma build do projeto a partir da raíz também (utilizando comandos como `mvn build` ou `mvn package`). Nesse caso, o analisador léxico estará dentro da pasta `target/`.
