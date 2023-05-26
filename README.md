@@ -22,6 +22,8 @@ Este repositório consiste da implementação de um analisador léxico para a Li
 
 ## Como rodar?
 
+### Direto do `.jar` providenciado
+
 O arquivo `analisador-lexico.jar` (distribuído na raíz) representa o analisador léxico implementado. Para rodá-lo, basta executar o seguinte comando:
 
 ```bash
@@ -30,4 +32,12 @@ java -jar analisador-lexico.jar /path/to/example/program /path/to/output/file
 
 Lembrando que é necessário que o arquivo de código `/path/to/example/program` exista e seja compatível. Se `/path/to/output/file` não existir, será criado pelo programa.
 
-É possível fazer uma build do projeto a partir da raíz também (utilizando comandos como `mvn build` ou `mvn package`). Nesse caso, o analisador léxico estará dentro da pasta `target/`.
+### Buildando o projeto
+
+Para reconstruir o projeto, basta acessar a raíz do repositório e executar o seguinte comando:
+
+```bash
+mvn package
+```
+
+Desta maneira, o `.jar` a ser executado estará em `target/alguma-lexico-1.0-SNAPSHOT-jar-with-dependencies.jar`. Este obedece as mesmas regras descritas acima.
