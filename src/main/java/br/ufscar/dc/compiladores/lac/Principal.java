@@ -60,7 +60,7 @@ public class Principal {
     /*
      * Main function.
      * 
-     * Instantiates a CharStream and an AlgumaLexer (our primary
+     * Instantiates a CharStream and an LA (our primary
      * lexer class) to read through a program file. Also opens
      * a PrintWriter to store the program's output.
      * 
@@ -80,7 +80,7 @@ public class Principal {
             String errorMessage = null;
 
             CharStream cs = CharStreams.fromFileName(args[0]);
-            AlgumaLexer lex = new AlgumaLexer(cs);
+            LA lex = new LA(cs);
 
             String outputFilename = args[1];
             guaranteeExistingFile(outputFilename);
@@ -90,7 +90,7 @@ public class Principal {
             while((t = lex.nextToken()).getType() != Token.EOF) {
 
                 String tokenText = "\'" + t.getText() + "\'";
-                String tokenType = AlgumaLexer.VOCABULARY.getDisplayName(t.getType());
+                String tokenType = LA.VOCABULARY.getDisplayName(t.getType());
                 
                 /**
                  * Checks for errors before continuing

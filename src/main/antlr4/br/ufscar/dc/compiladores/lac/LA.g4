@@ -1,4 +1,4 @@
-lexer grammar AlgumaLexer;
+lexer grammar LA;
 
 // =========================== RESERVED KEYWORDS AND IDENTIFIERS =============================
 
