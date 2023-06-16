@@ -13,7 +13,7 @@ Professor: [Daniel Lucrédio](https://github.com/dlucredio)
 ## Trabalhos implementados
 
 - [X] T1
-- [ ] T2
+- [X] T2
 - [ ] T3
 - [ ] T4
 - [ ] T5
@@ -23,8 +23,12 @@ Professor: [Daniel Lucrédio](https://github.com/dlucredio)
 Este repositório consiste da construção de um compilador para a Linguagem Algorítmica (LA), desenvolvida pelo prof. Jander Moreira. Por se tratar de um esforço prolongado e contínuo durante toda a disciplina, o compilador evoluirá ao longo do tempo: primeiro foi adicionado um tratamento de tokens léxicos, depois regras sintáticas, etc.
 
 Dois arquivos são principais para este trabalho:
-- `src/main/java/br/ufscar/dc/compiladores/alguma/lexico/Principal.java`: lógica principal para lidar com os tokens léxicos;
-- `src/main/antlr4/br/ufscar/dc/compiladores/alguma/lexico/AlgumaLexer.g4`: regras gramaticais para os tokens encontrados no programa a ser analisado.
+- `src/main/java/br/ufscar/dc/compiladores/lac/Principal.java`: lógica principal para lidar com os tokens léxicos;
+- `src/main/antlr4/br/ufscar/dc/compiladores/lac/LA.g4`: regras gramaticais para os tokens encontrados no programa a ser analisado.
+
+### Para o T2
+
+Um novo arquivo foi adicionado - `src/main/java/br/ufscar/dc/compiladores/lac/SyntaxErrorListener.java` - que contém a implementação de um *listener* de erros para reportar corretamente erros sintáticos.
 
 ## Acessar versões anteriores
 
@@ -40,22 +44,12 @@ Para acessar versões anteriores do presente repositório (por exemplo, quando a
 
 ## Como rodar?
 
-### Direto do `.jar` providenciado
-
-O arquivo `analisador-lexico.jar` (distribuído na raíz) representa o analisador léxico implementado. Para rodá-lo, basta executar o seguinte comando:
-
-```bash
-java -jar analisador-lexico.jar /path/to/example/program /path/to/output/file
-```
-
-Lembrando que é necessário que o arquivo de código `/path/to/example/program` exista e seja compatível. Se `/path/to/output/file` não existir, será criado pelo programa.
-
 ### Buildando o projeto
 
 Para reconstruir o projeto, basta acessar a raíz do repositório e executar o seguinte comando:
 
 ```bash
-mvn package
+mvn clean package
 ```
 
 Desta maneira, o `.jar` a ser executado estará em `target/lac-1.0-SNAPSHOT-jar-with-dependencies.jar`. Este obedece as mesmas regras descritas acima.
