@@ -6,7 +6,9 @@ import java.io.IOException;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 
 public class Principal {
@@ -78,55 +80,54 @@ public class Principal {
     public static void main(String[] args) {
         try{
             String errorMessage = null;
+            Boolean hasLexicalError = false;
 
+
+            /* Lexer, token stream, and parser configuration */
             CharStream cs = CharStreams.fromFileName(args[0]);
             LALexer lex = new LALexer(cs);
+            CommonTokenStream tokens = new CommonTokenStream(lex);
+            LAParser parser = new LAParser(tokens);
 
+            /* Creating output file to write results */
             String outputFilename = args[1];
             guaranteeExistingFile(outputFilename);
             PrintWriter outputWriter = new PrintWriter(outputFilename, "UTF-8");
 
+            /* Add our custom SyntaxErrorListener */
+            parser.removeErrorListeners();
+            SyntaxErrorListener sel = new SyntaxErrorListener();
+            parser.addErrorListener(sel);
+
+            /**
+             * First, we run through the program once to check for lexical errors
+             */
             Token t = null;
             while((t = lex.nextToken()).getType() != Token.EOF) {
 
-                String tokenText = "\'" + t.getText() + "\'";
                 String tokenType = LALexer.VOCABULARY.getDisplayName(t.getType());
-                
-                /**
-                 * Checks for errors before continuing
-                 */
+
                 if ((errorMessage = checkForLexicalError(t, tokenType)) != null) {
-                    System.out.println(errorMessage);
-                    outputWriter.write(errorMessage);
+                    hasLexicalError = true;
+                    outputWriter.print(errorMessage);
                     break;
                 }
-
-                /**
-                 * Some lexical rules need to be printed as their
-                 * "display name" - see tokenType definition above -,
-                 * but some need to be printed as their own name.
-                 * 
-                 * This if-statement makes sure the latter get its
-                 * proper treatment.
-                 */
-                if  (
-                    tokenType == "PALAVRA_CHAVE"     ||  // Reserved keywords
-                    tokenType == "SEPARATION_SYMBOL" ||  // Symbols that separate statements and expressions
-                    tokenType == "ARIT_OP"           ||  // Arithmetic operations
-                    tokenType == "RELAC_OP"          ||  // Relational operations
-                    tokenType == "INDEX_OP"              // Array indexing symbols
-                    )
-                {
-                    tokenType = tokenText;
-                }
-                
-                String parsedLine = "<" + tokenText + "," + tokenType + ">";
-                
-                outputWriter.println(parsedLine);
-                // System.out.println(parsedLine);
             }
-            outputWriter.close();
 
+            /**
+             * If no lexical error has been caught, we check for syntax errors
+             */
+            if (!hasLexicalError) {
+                try{
+                    lex.reset();
+                    parser.programa();
+                } catch (ParseCancellationException e) {
+                    outputWriter.println(e.getMessage());
+                }
+            }
+
+            outputWriter.println("Fim da compilacao");
+            outputWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
