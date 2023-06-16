@@ -50,13 +50,13 @@ declaracao_global:
     'funcao' IDENT '(' parametros? ')' ':' tipo_estendido (declaracao_local)* (cmd)* 'fim_funcao';
 
 parametro:
-    ('var') identificador (',' identificador) ':' tipo_estendido;
+    ('var')? identificador (',' identificador)* ':' tipo_estendido;
 
 parametros:
-    parametro (',' parametro);
+    parametro (',' parametro)*;
 
 corpo:
-    (declaracao_local) (cmd);
+    (declaracao_local)* (cmd)*;
 
 cmd:
     cmdLeia |
@@ -71,59 +71,58 @@ cmd:
     cmdRetorne ;
 
 cmdLeia:
-    'leia' '(' ('^') identificador (',' ('^') identificador) ')' ; //aqui 2 vezes, nois dois "^"
+    'leia' '(' ('^')? identificador (',' ('^')? identificador)* ')' ;
 
 cmdEscreva:
-    'escreva' '(' expressao (',' expressao) ')' ;
+    'escreva' '(' expressao (',' expressao)* ')' ;
     
 cmdSe:
-    'se' expressao 'entao' (cmd) ('senao' (cmd)) 'fim_se' ;// aqui, no (senão (cmd))
+    'se' expressao 'entao' (cmd)* ('senao' (cmd)*)? 'fim_se' ;
 
 cmdCaso:
-
-    'caso' exp_aritmetica 'seja' selecao ('senao' (cmd)) 'fim_caso' ; // aqui, no (senão (cmd)) 
+    'caso' exp_aritmetica 'seja' selecao ('senao' (cmd)*)? 'fim_caso' ;
 
 cmdPara: 
-    'para' IDENT '<-' exp_aritmetica 'ate' exp_aritmetica 'faca' (cmd) 'fim_para' ;
+    'para' IDENT '<-' exp_aritmetica 'ate' exp_aritmetica 'faca' (cmd)* 'fim_para' ;
 
 cmdEnquanto:
-    'enquanto' expressao 'faca' (cmd) 'fim_enquanto' ;
+    'enquanto' expressao 'faca' (cmd)* 'fim_enquanto' ;
 
 cmdFaca:
-    'faca' (cmd) 'ate' expressao ;
+    'faca' (cmd)* 'ate' expressao ;
 
 cmdAtribuicao:
-    ('^') identificador '<-' expressao ; // aqui, no "^"
+    ('^')? identificador '<-' expressao ;
 
 cmdChamada:
-    IDENT '(' expressao (',' expressao) ')' ;
+    IDENT '(' expressao (',' expressao)* ')' ;
 
 cmdRetorne:
     'retorne' expressao ;
 
 selecao:
-    (item_selacao) ;
+    (item_selecao)* ;
 
-item_selacao:
-    constantes ':' (cmd) ;
+item_selecao:
+    constantes ':' (cmd)* ;
 
 constantes:
-    numero_intervalo ( ',' numero_intervalo) ;
+    numero_intervalo (',' numero_intervalo)* ;
 
 numero_intervalo:
-    (op_unario) NUM_INT ('..' (op_unario) NUM_INT) ; // aqui, no op_unario
+    (op_unario)? NUM_INT ('..' (op_unario)? NUM_INT)? ;
 
 op_unario:
     '-' ;
 
 exp_aritmetica:
-    termo (op1 termo) ;
+    termo (op1 termo)* ;
 
 termo:
-    fator (op2 fator) ;
+    fator (op2 fator)* ;
 
 fator: 
-    parcela (op3 parcela) ;
+    parcela (op3 parcela)* ;
 
 op1:
     '+' |
@@ -137,12 +136,12 @@ op3:
     '%' ;
 
 parcela:
-    (op_unario) parcela_unario | // aqui, no op_unario
+    (op_unario)? parcela_unario |
     parcela_nao_unario ;
 
 parcela_unario:
-    ('^') identificador | // aqui no "^"
-    IDENT '(' expressao (',' expressao) ')' |
+    ('^')? identificador |
+    IDENT '(' expressao (',' expressao)* ')' |
     NUM_INT |
     NUM_REAL |
     '(' expressao ')' ;
@@ -152,7 +151,7 @@ parcela_nao_unario:
     CADEIA ;
 
 exp_relacional:
-    exp_aritmetica (op_relacional exp_aritmetica) ; // aqui, no (op_relacional exp_aritmetica)
+    exp_aritmetica (op_relacional exp_aritmetica)? ;
 
 op_relacional:
     '=' |
@@ -163,13 +162,13 @@ op_relacional:
     '>' ;
 
 expressao:
-    termo_logico (op_logico_1 termo_logico) ;
+    termo_logico (op_logico_1 termo_logico)* ;
 
 termo_logico:
-    fator_logico (op_logico_2 fator_logico) ;
+    fator_logico (op_logico_2 fator_logico)* ;
 
 fator_logico:
-    ('nao') parcela_logica ; // aqui no não
+    ('nao')? parcela_logica ;
 
 parcela_logica:
     ('verdadeiro' | 'falso') |
