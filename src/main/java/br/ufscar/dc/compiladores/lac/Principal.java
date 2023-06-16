@@ -80,7 +80,7 @@ public class Principal {
             String errorMessage = null;
 
             CharStream cs = CharStreams.fromFileName(args[0]);
-            LA lex = new LA(cs);
+            LALexer lex = new LALexer(cs);
 
             String outputFilename = args[1];
             guaranteeExistingFile(outputFilename);
@@ -90,7 +90,7 @@ public class Principal {
             while((t = lex.nextToken()).getType() != Token.EOF) {
 
                 String tokenText = "\'" + t.getText() + "\'";
-                String tokenType = LA.VOCABULARY.getDisplayName(t.getType());
+                String tokenType = LALexer.VOCABULARY.getDisplayName(t.getType());
                 
                 /**
                  * Checks for errors before continuing
