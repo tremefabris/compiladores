@@ -10,6 +10,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
+import br.ufscar.dc.compiladores.lac.LAParser.ProgramaContext;
+
 
 public class Principal {
     
@@ -120,7 +122,15 @@ public class Principal {
             if (!hasLexicalError) {
                 try{
                     lex.reset();
-                    parser.programa();
+
+                    ProgramaContext tree = parser.programa();
+                    LASemantic sem = new LASemantic();
+
+                    sem.visitPrograma(tree);
+
+                    for (String error: LASemanticUtils.semanticErrors)
+                        System.out.println(error);
+
                 } catch (ParseCancellationException e) {
                     outputWriter.println(e.getMessage());
                 }
