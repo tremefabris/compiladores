@@ -10,8 +10,10 @@ public class SymbolTable {
      * Types for Linguagem Algoritmica
      */
     public enum LAType {
+        LITERAL,
         INTEGER,
         REAL,
+        LOGICAL,
         INVALID,
     }
 

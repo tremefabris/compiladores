@@ -12,31 +12,6 @@ public class LASemantic extends LABaseVisitor<Void> {
         table = new SymbolTable();
         return super.visitPrograma(ctx);
     }
-
-    @Override
-    public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
-        if (ctx.variavel() != null) {
-
-            for (LAParser.IdentificadorContext id: ctx.variavel().identificador()) {
-
-                String ident_name = id.IDENT(0).getText();
-                if (table.exists(ident_name)) {
-
-                    LASemanticUtils.addSemanticError(
-                        id.IDENT(0).getSymbol(),
-                        "Variável " + ident_name + " já existe"
-                    );
-
-                } else {
-                    
-                    table.add(ident_name, LAType.INTEGER);
-
-                }
-            }
-        }
-
-        return super.visitDeclaracao_local(ctx);
-    }
     
     @Override
     public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
@@ -59,22 +34,93 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitTipo_basico_ident(ctx);
     }
 
-    /**
-     * TODO: Create class visitVariavel that handles variable creation
-     * without calling visitIdentificador after
-     */
+    @Override
+    public Void visitVariavel(LAParser.VariavelContext ctx) {
 
-    /**
-     * TODO: Create class visitIdentificador that automatically handles
-     * unitialized variables
-     */
+        /*
+         * HANDLES VARIABLE INITIALIZATION
+         * 
+         * Adds semantic error if variable already exists. Only adds newly-
+         * -created variable to symbol table if its type is basic (tipo_basico).
+         * 
+         * Skips visitIdentificador()'s execution, since it handles IDENT's
+         * validation right here. This means that anything that accesses
+         * visitIdenticador() some other way is using that IDENT, not declaring
+         * it. 
+         */
+
+        for (LAParser.IdentificadorContext ic: ctx.identificador()) {
+
+            if (table.exists(ic.IDENT(0).getText()))
+                LASemanticUtils.addSemanticError(
+                    ic.IDENT(0).getSymbol(),
+                    "identificador " + ic.IDENT(0).getText() + " ja declarado anteriormente" 
+                );
+            
+            else {
+
+                LAType var_type = null;
+                switch(ctx.tipo().getText()) {            // Only considering basic types (tipo_basico)
+
+                    case "literal":
+                        var_type = LAType.LITERAL;
+                        break;
+                    case "inteiro":
+                        var_type = LAType.INTEGER;
+                        break;
+                    case "real":
+                        var_type = LAType.REAL;
+                        break;
+                    case "logico":
+                        var_type = LAType.LOGICAL;
+                        break;
+                    default:
+                        var_type = LAType.INVALID;
+                        break;
+                
+                }
+                    
+                System.out.println(
+                    "CREATED VAR: " + ic.IDENT(0).getText() +
+                    ": " + ctx.tipo().getText()
+                );
+
+                table.add(ic.IDENT(0).getText(), var_type);
+            }
+        }
+            
+        return super.visitTipo(ctx.tipo());  // Skips visitIdentificador
+    }
+
+    @Override
+    public Void visitIdentificador(LAParser.IdentificadorContext ctx) {
+
+        /*
+         * HANDLES UNITIALIZED VARIABLES
+         * 
+         * Adds semantic error if variable is being used but wasn't initialized.
+         */
+        
+        // Syntatic analyzer won't allow to get here if ctx.IDENT(0) == null
+        if (!table.exists(ctx.IDENT(0).getText()))
+            LASemanticUtils.addSemanticError(
+                ctx.IDENT(0).getSymbol(),
+                "identificador " + ctx.IDENT(0).getText() + " nao declarado"
+            );
+
+        else
+            System.out.println("USING: " + ctx.IDENT(0));
+
+        return super.visitIdentificador(ctx);
+    }
 
     /**
      * TODO: Both previous TODOs help avoid making a initialized-variable check
      * for every single possible command
      */
 
-    @Override
+    /*
+     @Override
     public Void visitCmdLeia(LAParser.CmdLeiaContext ctx) {
 
         for (LAParser.IdentificadorContext ic: ctx.identificador()) {
@@ -90,5 +136,6 @@ public class LASemantic extends LABaseVisitor<Void> {
 
         return super.visitCmdLeia(ctx);
     }
+    */
 
 }
