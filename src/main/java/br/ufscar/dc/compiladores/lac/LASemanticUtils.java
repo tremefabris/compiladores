@@ -10,10 +10,9 @@ public class LASemanticUtils {
 
     public static void addSemanticError(Token token, String msg) {
         int line = token.getLine();
-        int column = token.getCharPositionInLine();
 
         semanticErrors.add(String.format(
-            "Erro %d:%d - %s", line, column, msg
+            "Linha %d: %s", line, msg
         ));
     }
 }

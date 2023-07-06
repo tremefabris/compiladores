@@ -38,4 +38,57 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitDeclaracao_local(ctx);
     }
     
+    @Override
+    public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
+        
+        /*
+         *  CATCHES ERROR: Undeclared type
+         * 
+         *  Considers every possible type apart from basic types (tipo_basico)
+         *  as an undeclared type (good enough for T3)
+         */
+        if (ctx.IDENT() != null) {
+
+            LASemanticUtils.addSemanticError(
+                ctx.IDENT().getSymbol(),
+                "tipo " + ctx.IDENT().getText() + " nao declarado"
+            );
+
+        }
+
+        return super.visitTipo_basico_ident(ctx);
+    }
+
+    /**
+     * TODO: Create class visitVariavel that handles variable creation
+     * without calling visitIdentificador after
+     */
+
+    /**
+     * TODO: Create class visitIdentificador that automatically handles
+     * unitialized variables
+     */
+
+    /**
+     * TODO: Both previous TODOs help avoid making a initialized-variable check
+     * for every single possible command
+     */
+
+    @Override
+    public Void visitCmdLeia(LAParser.CmdLeiaContext ctx) {
+
+        for (LAParser.IdentificadorContext ic: ctx.identificador()) {
+            
+            if (ic.IDENT(0) != null && !table.exists(ic.IDENT(0).getText())) {
+
+                LASemanticUtils.addSemanticError(
+                    ic.IDENT(0).getSymbol(),
+                    "identificador " + ic.IDENT(0).getText() + " nao declarado"
+                );
+            }
+        }
+
+        return super.visitCmdLeia(ctx);
+    }
+
 }

@@ -117,7 +117,8 @@ public class Principal {
             }
 
             /**
-             * If no lexical error has been caught, we check for syntax errors
+             * If no lexical error has been caught, we check for syntax 
+             * and semantic errors
              */
             if (!hasLexicalError) {
                 try{
@@ -128,8 +129,10 @@ public class Principal {
 
                     sem.visitPrograma(tree);
 
-                    for (String error: LASemanticUtils.semanticErrors)
+                    for (String error: LASemanticUtils.semanticErrors) {
+                        outputWriter.println(error);
                         System.out.println(error);
+                    }
 
                 } catch (ParseCancellationException e) {
                     outputWriter.println(e.getMessage());
