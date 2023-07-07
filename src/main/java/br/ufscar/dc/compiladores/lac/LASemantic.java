@@ -79,11 +79,6 @@ public class LASemantic extends LABaseVisitor<Void> {
                         break;
                 
                 }
-                    
-                //System.out.println(
-                //    "CREATED VAR: " + ic.IDENT(0).getText() +
-                //    ": " + ctx.tipo().getText()
-                //);
 
                 table.add(ic.IDENT(0).getText(), var_type);
             }
@@ -108,15 +103,8 @@ public class LASemantic extends LABaseVisitor<Void> {
                 "identificador " + ctx.IDENT(0).getText() + " nao declarado"
             );
 
-        //else
-        //    System.out.println("USING: " + ctx.IDENT(0));
-
         return super.visitIdentificador(ctx);
     }
-
-    /*
-     * TODO: REFACTOR AND COMMENT
-     */
 
     @Override
     public Void visitCmdAtribuicao(LAParser.CmdAtribuicaoContext ctx) {
@@ -130,38 +118,28 @@ public class LASemantic extends LABaseVisitor<Void> {
         );
         String var_name = ctx.identificador().getText();
 
-        System.out.println(
-                    "var: " + table.verify(var_name)
-                    + " - exp: " + exp_type
+
+        if (table.exists(var_name)) {  // non-existance already handled by visitIdentificador
+
+            LAType var_type = table.verify(var_name);
+
+            /*
+             * Errors out if variable and expression have different types,
+             * and they both aren't a combination of INTEGER & REAL (since
+             * an INTEGER can be attributed to a REAL variable, etc).
+             */
+            if (
+                    var_type != exp_type &&
+                    !((var_type == LAType.INTEGER && exp_type == LAType.REAL) ||
+                     (var_type == LAType.REAL && exp_type == LAType.INTEGER))
+            ) {
+
+                LASemanticUtils.addSemanticError(
+                    ctx.start,
+                    "atribuicao nao compativel para " + var_name
                 );
 
-        if (exp_type != LAType.INVALID) {
-
-            if (table.exists(var_name)) {  // non-existance already handled by visitIdentificador
-
-                LAType var_type = table.verify(var_name);
-
-                if (
-                        var_type != exp_type &&
-                        !((var_type == LAType.INTEGER && exp_type == LAType.REAL) ||
-                         (var_type == LAType.REAL && exp_type == LAType.INTEGER))
-                ) {
-
-                    LASemanticUtils.addSemanticError(
-                        ctx.start,
-                        "atribuicao nao compativel para " + var_name
-                    );
-
-                }
             }
-        
-        } else {
-
-            LASemanticUtils.addSemanticError(
-                ctx.start,
-                "atribuicao nao compativel para " + var_name
-            );
-
         }
 
         return super.visitCmdAtribuicao(ctx);
