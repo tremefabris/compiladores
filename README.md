@@ -14,27 +14,28 @@ Professor: [Daniel Lucrédio](https://github.com/dlucredio)
 
 - [X] T1
 - [X] T2
-- [ ] T3
+- [X] T3
 - [ ] T4
 - [ ] T5
 
 ## Descrição
 
-Este repositório consiste da construção de um compilador para a Linguagem Algorítmica (LA), desenvolvida pelo prof. Jander Moreira. Por se tratar de um esforço prolongado e contínuo durante toda a disciplina, o compilador evoluirá ao longo do tempo: primeiro foi adicionado um tratamento de tokens léxicos, depois regras sintáticas, etc.
+Este repositório consiste da construção de um compilador para a Linguagem Algorítmica (LA), desenvolvida pelo prof. Jander Moreira. Por se tratar de um esforço prolongado e contínuo durante toda a disciplina, o compilador evoluirá ao longo do tempo: primeiro foi adicionado um tratamento de tokens léxicos, depois regras sintáticas, semânticas, etc.
 
-Dois arquivos são principais para este trabalho:
-- `src/main/java/br/ufscar/dc/compiladores/lac/Principal.java`: lógica principal para lidar com os tokens léxicos;
-- `src/main/antlr4/br/ufscar/dc/compiladores/lac/LA.g4`: regras gramaticais para os tokens encontrados no programa a ser analisado.
+### Para o T3
 
-### Para o T2
+Três novos arquivos são importantes:
+- `LASemantic.java`: implementa regras semânticas da linguagem, principalmente no que concerne à identificação de erros;
+- `LASemanticUtils.java`: implementa funções utilitárias para a análise semântica, principalmente sobre a verificação de tipos em expressões, variáveis, etc; 
+- `SymbolTable.java`: implementa uma tabela de símbolos para armazenar variáveis (nomes) e seus tipos, além de funções utilitárias para a mesma.
 
-Um novo arquivo foi adicionado - `src/main/java/br/ufscar/dc/compiladores/lac/SyntaxErrorListener.java` - que contém a implementação de um *listener* de erros para reportar corretamente erros sintáticos.
 
 ## Acessar versões anteriores
 
 Para acessar versões anteriores do presente repositório (por exemplo, quando apenas o T1 estava implementado, etc), os seguintes links são úteis:
 
 - [Finalização do T1](https://github.com/tremefabris/compiladores/tree/28eda28771fb2112ddda98270b558ebae4d1d6f3);
+- [Finalização do T2](https://github.com/tremefabris/compiladores/tree/a98b56b5c3d3da7617205f4258228c57e748445d);
 
 ## Requerimentos
 
@@ -52,4 +53,4 @@ Para reconstruir o projeto, basta acessar a raíz do repositório e executar o s
 mvn clean package
 ```
 
-Desta maneira, o `.jar` a ser executado estará em `target/lac-1.0-SNAPSHOT-jar-with-dependencies.jar`. Este obedece as mesmas regras descritas acima.
+Desta maneira, o `.jar` a ser executado estará em `target/lac-1.0-SNAPSHOT-jar-with-dependencies.jar`.
