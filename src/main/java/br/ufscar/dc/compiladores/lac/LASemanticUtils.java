@@ -6,9 +6,6 @@ import org.antlr.v4.runtime.Token;
 
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
-/*
- * TODO: REFACTOR WHERE NEEDED AND COMMENT
- */
 
 public class LASemanticUtils {
     public static List<String> semanticErrors = new ArrayList<>();
@@ -28,12 +25,12 @@ public class LASemanticUtils {
      * 
      * The business logic for these functions is: if the expression
      * follows a declared type (including LAType.INVALID), then that
-     * type is returned. Else, null is returned.
+     * type is returned. Else, LAType.INVALID is returned.
      * Therefore, null serves to indicate that the expression is faulty.
      */
 
     /*
-     * EXPRESSION VERIFICATION
+     * EXPRESSAO VERIFICATION
      */
     public static LAType
     verifyType(SymbolTable table, LAParser.ExpressaoContext ctx) {
@@ -52,6 +49,9 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * TERMO LOGICO VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Termo_logicoContext ctx) {
         LAType ret = null;
@@ -69,12 +69,18 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * FATOR LOGICO VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Fator_logicoContext ctx) {
         LAType ret = verifyType(table, ctx.parcela_logica());
         return ret;
     }
 
+    /*
+     * PARCELA LOGICA VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Parcela_logicaContext ctx) {
         LAType ret = null;
@@ -90,6 +96,9 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * EXPRESSAO RELACIONAL VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Exp_relacionalContext ctx) {
         LAType ret = null;
@@ -104,6 +113,10 @@ public class LASemanticUtils {
             }
         }
 
+        /*
+         * If there is ANY relational operation (<, >, =, etc),
+         * then its type is LOGICAL.
+         */
         if (ctx.op_relacional() != null) {
             return LAType.LOGICAL;
         }
@@ -111,6 +124,10 @@ public class LASemanticUtils {
         return ret;
     }
 
+
+    /*
+     * EXPRESSAO ARITMETICA VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Exp_aritmeticaContext ctx) {
         LAType ret = null;
@@ -128,6 +145,9 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * TERMO VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.TermoContext ctx) {
         LAType ret = null;
@@ -139,6 +159,10 @@ public class LASemanticUtils {
                 ret = aux;
             } else if (ret != aux && aux != LAType.INVALID) {
 
+                /*
+                 * INTEGERs and REALs should be interchangeable.
+                 * Notice we're typecasting to REAL.
+                 */
                 if (
                         (ret == LAType.REAL && aux == LAType.INTEGER) ||
                         (ret == LAType.INTEGER && aux == LAType.REAL)
@@ -153,6 +177,9 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * FATOR VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.FatorContext ctx) {
         LAType ret = null;
@@ -170,6 +197,10 @@ public class LASemanticUtils {
         return ret;
     }
 
+
+    /*
+     * PARCELA VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.ParcelaContext ctx) {
         LAType ret = null;
@@ -177,10 +208,6 @@ public class LASemanticUtils {
         if (ctx.parcela_unario() != null) {
 
             ret = verifyType(table, ctx.parcela_unario());
-
-            System.out.println(
-                " TYPE " + ret
-            );
 
         } else {  // parcela_nao_unario
 
@@ -191,6 +218,9 @@ public class LASemanticUtils {
         return ret;
     }
 
+    /*
+     * PARCELA NAO UNARIA VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Parcela_nao_unarioContext ctx) {
         
@@ -203,25 +233,29 @@ public class LASemanticUtils {
     
     }
 
+    /*
+     * PARCELA UNARIA VERIFICATION
+     */
     public static LAType
     verifyType(SymbolTable table, LAParser.Parcela_unarioContext ctx) {
 
+        /*
+         * If it's a variable...
+         */
         if (ctx.identificador() != null) {
 
             String ident_name = ctx.identificador().getText();
             if (table.exists(ident_name)) {
-
-                System.out.print(":: identific " + ident_name);
-
                 return table.verify(ident_name);
             } else {
                 return null;
             }
 
-        } else if (ctx.IDENT() != null) {  // what does this even mean
+        /*
+         * Not sure what this even means...
+         */
+        } else if (ctx.IDENT() != null) {
             
-            System.out.print(":: IDENT " + ctx.IDENT().getText());
-
             LAType ret = null;
             for (LAParser.ExpressaoContext ec: ctx.expressao()) {
                 LAType aux = verifyType(table, ec);
@@ -235,21 +269,24 @@ public class LASemanticUtils {
 
             return ret;
         
+        /*
+         * If it's an integer...
+         */
         } else if (ctx.NUM_INT() != null) {
-
-            System.out.print(":: INT " + ctx.NUM_INT().getText());
 
             return LAType.INTEGER;
 
+        /*
+         * If it's a real number...
+         */
         } else if (ctx.NUM_REAL() != null) {
-
-            System.out.print(":: REAL " + ctx.NUM_REAL().getText());
 
             return LAType.REAL;
 
+        /*
+         * If it's a nested expression
+         */
         } else {  // '(' expressao ')'
-
-            System.out.print(":: EXP " + ctx.expressao(0).getText());
 
             return verifyType(table, ctx.expressao(0));
 
