@@ -80,10 +80,10 @@ public class LASemantic extends LABaseVisitor<Void> {
                 
                 }
                     
-                System.out.println(
-                    "CREATED VAR: " + ic.IDENT(0).getText() +
-                    ": " + ctx.tipo().getText()
-                );
+                //System.out.println(
+                //    "CREATED VAR: " + ic.IDENT(0).getText() +
+                //    ": " + ctx.tipo().getText()
+                //);
 
                 table.add(ic.IDENT(0).getText(), var_type);
             }
@@ -108,34 +108,63 @@ public class LASemantic extends LABaseVisitor<Void> {
                 "identificador " + ctx.IDENT(0).getText() + " nao declarado"
             );
 
-        else
-            System.out.println("USING: " + ctx.IDENT(0));
+        //else
+        //    System.out.println("USING: " + ctx.IDENT(0));
 
         return super.visitIdentificador(ctx);
     }
 
-    /**
-     * TODO: Both previous TODOs help avoid making a initialized-variable check
-     * for every single possible command
+    /*
+     * TODO: REFACTOR AND COMMENT
      */
 
-    /*
-     @Override
-    public Void visitCmdLeia(LAParser.CmdLeiaContext ctx) {
+    @Override
+    public Void visitCmdAtribuicao(LAParser.CmdAtribuicaoContext ctx) {
 
-        for (LAParser.IdentificadorContext ic: ctx.identificador()) {
-            
-            if (ic.IDENT(0) != null && !table.exists(ic.IDENT(0).getText())) {
+        /*
+         * HANDLES INCOMPATIBLE ATRIBUTION
+         */
+        
+        LAType exp_type = LASemanticUtils.verifyType(
+            table, ctx.expressao()
+        );
+        String var_name = ctx.identificador().getText();
 
-                LASemanticUtils.addSemanticError(
-                    ic.IDENT(0).getSymbol(),
-                    "identificador " + ic.IDENT(0).getText() + " nao declarado"
+        System.out.println(
+                    "var: " + table.verify(var_name)
+                    + " - exp: " + exp_type
                 );
+
+        if (exp_type != LAType.INVALID) {
+
+            if (table.exists(var_name)) {  // non-existance already handled by visitIdentificador
+
+                LAType var_type = table.verify(var_name);
+
+                if (
+                        var_type != exp_type &&
+                        !((var_type == LAType.INTEGER && exp_type == LAType.REAL) ||
+                         (var_type == LAType.REAL && exp_type == LAType.INTEGER))
+                ) {
+
+                    LASemanticUtils.addSemanticError(
+                        ctx.start,
+                        "atribuicao nao compativel para " + var_name
+                    );
+
+                }
             }
+        
+        } else {
+
+            LASemanticUtils.addSemanticError(
+                ctx.start,
+                "atribuicao nao compativel para " + var_name
+            );
+
         }
 
-        return super.visitCmdLeia(ctx);
+        return super.visitCmdAtribuicao(ctx);
     }
-    */
 
 }
