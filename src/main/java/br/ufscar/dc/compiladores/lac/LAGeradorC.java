@@ -150,12 +150,14 @@ public class LAGeradorC extends LABaseVisitor<Void>{
 
         });
 
-        saida.append("; \n");
+        saida.append(";\n");
+        return null;
+    }
 
-
+    @Override
+    public Void visitTipo(LAParser.TipoContext ctx){
 
         return null;
-
     }
 
 
