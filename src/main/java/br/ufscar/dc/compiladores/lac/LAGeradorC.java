@@ -1,8 +1,13 @@
 package br.ufscar.dc.compiladores.lac;
 
+import org.antlr.v4.runtime.tree.TerminalNode;
+
+import com.sun.tools.javac.resources.ct;
+
+import br.ufscar.dc.compiladores.lac.LAParser.IdentificadorContext;
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
-public class LAGeradorC extends LABaseVisitor<Void>{
+public class LAGeradorC extends LABaseVisitor<Void> {
     StringBuilder saida;
     SymbolTable table;
 
@@ -13,64 +18,64 @@ public class LAGeradorC extends LABaseVisitor<Void>{
     }
 
     @Override
-    public Void visitPrograma(LAParser.ProgramaContext ctx){
+    public Void visitPrograma(LAParser.ProgramaContext ctx) {
 
-        //inicio basico do c
+        // inicio basico do c
         saida.append("#include <stdio.h>\n");
         saida.append("#include <stlib.h>\n");
         saida.append("\n");
 
-        ctx.declaracoes().decl_local_global().forEach(dec -> visitDecl_local_global(dec));// visita todas as declarações que estão fora do corpo
+        ctx.declaracoes().decl_local_global().forEach(dec -> visitDecl_local_global(dec));// visita todas as declarações
+                                                                                          // que estão fora do corpo
 
-        //chamada da função main
+        // chamada da função main
 
         saida.append("\n");
         saida.append("int main() {\n");
 
-        ctx.corpo().cmd().forEach(comando -> visitCmd(comando));//ainda esta incompleto
+        ctx.corpo().cmd().forEach(comando -> visitCmd(comando));// ainda esta incompleto
 
         saida.append("}\n");
-
 
         return null;
 
     }
 
     @Override
-    public Void visitDecl_local_global(LAParser.Decl_local_globalContext ctx){
-        if (ctx.declaracao_global() != null){
+    public Void visitDecl_local_global(LAParser.Decl_local_globalContext ctx) {
+        if (ctx.declaracao_global() != null) {
             saida.append("\n");
             visitDeclaracao_global(ctx.declaracao_global());
             saida.append("\n");
 
-        }else{
+        } else {
             visitDeclaracao_local(ctx.declaracao_local());
             saida.append("\n");
-            
+
         }
         return null;
 
     }
 
     @Override
-    public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx){
-        //TODO: declarações globais
+    public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
+        // TODO: declarações globais
 
         return null;
     }
 
     @Override
-    public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx){
-        if(ctx.variavel() != null){// caso seka uma declaração basica
+    public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
+        if (ctx.variavel() != null) {// caso seka uma declaração basica
             visitVariavel(ctx.variavel());
 
-        }else if (ctx.tipo_basico() != null) {// caso estja declarando uma constante
+        } else if (ctx.tipo_basico() != null) {// caso estja declarando uma constante
             String nome = ctx.IDENT().getText();
             String valor = ctx.valor_constante().getText();
             String strtipo = ctx.tipo_basico().getText();
             LAType tipo = LAType.INVALID;
 
-            switch(strtipo){
+            switch (strtipo) {
                 case "literal":
                     tipo = LAType.LITERAL;
                     break;
@@ -89,7 +94,7 @@ public class LAGeradorC extends LABaseVisitor<Void>{
             saida.append("\n");
             table.add(nome, tipo);
 
-        }else{// caso esteja declarando um registro
+        } else {// caso esteja declarando um registro
             String nome = ctx.IDENT().getText();
             saida.append("typedef struct{ ");
             saida.append("\n");
@@ -98,7 +103,6 @@ public class LAGeradorC extends LABaseVisitor<Void>{
             saida.append("}");
             saida.append(nome);
             saida.append("\n");
-            
 
         }
 
@@ -106,12 +110,14 @@ public class LAGeradorC extends LABaseVisitor<Void>{
     }
 
     @Override
-    public Void visitVariavel(LAParser.VariavelContext ctx){
+    public Void visitVariavel(LAParser.VariavelContext ctx) {
         int a = 0;
         String strtipo = ctx.tipo().getText();
         LAType tipo = LAType.INVALID;
-        switch(strtipo){/* atualmente só trata tipos basicos
-            TODO: fazer tratar tipos não basicos     */
+        switch (strtipo) {/*
+                           * atualmente só trata tipos basicos
+                           * TODO: fazer tratar tipos não basicos
+                           */
             case "literal":
                 tipo = LAType.LITERAL;
                 strtipo = "string";
@@ -128,48 +134,35 @@ public class LAGeradorC extends LABaseVisitor<Void>{
                 tipo = LAType.LOGICAL;
                 strtipo = "bool";
                 break;
-            }
-        saida.append(strtipo + " ");    
-        ctx.identificador().forEach(identificador -> {
-            String nome = identificador.getText();
-            
-            table.add(nome, tipo);// não sei corrigir esse problema
-            if (a ==0){
-                a = 1;
-            } else{
-                saida.append(", ");
-            }
-            saida.append(nome);
+        }
 
-            /*o que esta comendado é uma varificação de se é vetor, o codigo atual finge que vetor não existe:
-             * if ( identificador.dimensao() != null){
-                
-            }
-             * 
-             */
+        saida.append(strtipo);
 
-        });
+        for(int i=0;i<ctx.identificador().size();i++) {
+            IdentificadorContext ident = ctx.identificador(i);
+            String nome = ident.getText();
+            saida.append(" " + nome);
+            if(i != ctx.identificador().size()-1) {
+                saida.append(",");
+
+            }
+        }
+        
 
         saida.append(";\n");
         return null;
     }
 
     @Override
-    public Void visitTipo(LAParser.TipoContext ctx){
+    public Void visitTipo(LAParser.TipoContext ctx) {
 
         return null;
     }
-
 
     @Override
-    public Void visitCmd(LAParser.CmdContext ctx){
-
+    public Void visitCmd(LAParser.CmdContext ctx) {
 
         return null;
     }
-
-    
-    
-
 
 }
