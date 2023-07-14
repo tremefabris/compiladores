@@ -45,6 +45,7 @@ public class LAGeradorC extends LABaseVisitor<Void>{
 
         }else{
             visitDeclaracao_local(ctx.declaracao_local());
+            saida.append("\n");
             
         }
         return null;
@@ -60,10 +61,10 @@ public class LAGeradorC extends LABaseVisitor<Void>{
 
     @Override
     public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx){
-        if(ctx.variavel() != null){
+        if(ctx.variavel() != null){// caso seka uma declaração basica
             visitVariavel(ctx.variavel());
 
-        }else if (ctx.tipo_basico() != null) {
+        }else if (ctx.tipo_basico() != null) {// caso estja declarando uma constante
             String nome = ctx.IDENT().getText();
             String valor = ctx.valor_constante().getText();
             String strtipo = ctx.tipo_basico().getText();
@@ -88,7 +89,7 @@ public class LAGeradorC extends LABaseVisitor<Void>{
             saida.append("\n");
             table.add(nome, tipo);
 
-        }else{
+        }else{// caso esteja declarando um registro
             String nome = ctx.IDENT().getText();
             saida.append("typedef struct{ ");
             saida.append("\n");
@@ -104,13 +105,65 @@ public class LAGeradorC extends LABaseVisitor<Void>{
         return null;
     }
 
+    @Override
+    public Void visitVariavel(LAParser.VariavelContext ctx){
+        int a = 0;
+        String strtipo = ctx.tipo().getText();
+        LAType tipo = LAType.INVALID;
+        switch(strtipo){/* atualmente só trata tipos basicos
+            TODO: fazer tratar tipos não basicos     */
+            case "literal":
+                tipo = LAType.LITERAL;
+                strtipo = "string";
+                break;
+            case "inteiro":
+                tipo = LAType.INTEGER;
+                strtipo = "int";
+                break;
+            case "real":
+                tipo = LAType.REAL;
+                strtipo = "float";
+                break;
+            case "logico":
+                tipo = LAType.LOGICAL;
+                strtipo = "bool";
+                break;
+            }
+        saida.append(strtipo + " ");    
+        ctx.identificador().forEach(identificador -> {
+            String nome = identificador.getText();
+            
+            table.add(nome, tipo);// não sei corrigir esse problema
+            if (a ==0){
+                a = 1;
+            } else{
+                saida.append(", ");
+            }
+            saida.append(nome);
+
+            /*o que esta comendado é uma varificação de se é vetor, o codigo atual finge que vetor não existe:
+             * if ( identificador.dimensao() != null){
+                
+            }
+             * 
+             */
+
+        });
+
+        saida.append("; \n");
+
+
+
+        return null;
+
+    }
 
 
     @Override
-    public Void visitCmd(){
+    public Void visitCmd(LAParser.CmdContext ctx){
 
 
-        
+        return null;
     }
 
     
