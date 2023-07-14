@@ -60,13 +60,16 @@ public class LASemantic extends LABaseVisitor<Void> {
             else {
 
                 LAType var_type = null;
-                switch(ctx.tipo().getText()) {            // Only considering basic types (tipo_basico)
+                switch(ctx.tipo().getText()) {
 
                     case "literal":
                         var_type = LAType.LITERAL;
                         break;
                     case "inteiro":
                         var_type = LAType.INTEGER;
+                        break;
+                    case "^inteiro":
+                        var_type = LAType.PTR_INTEGER;
                         break;
                     case "real":
                         var_type = LAType.REAL;
@@ -106,6 +109,21 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitIdentificador(ctx);
     }
 
+    public static boolean areTypesIncompatible(LAType var, LAType exp) {
+        boolean ret = (
+            var != exp &&
+            !(
+                (var == LAType.INTEGER && exp == LAType.REAL) ||
+                (var == LAType.REAL && exp == LAType.INTEGER)
+            ) &&
+            !(
+                (var == LAType.PTR_INTEGER && exp == LAType.MEM_ADDR)
+            )
+        );
+
+        return ret;
+    }
+
     @Override
     public Void visitCmdAtribuicao(LAParser.CmdAtribuicaoContext ctx) {
 
@@ -122,21 +140,18 @@ public class LASemantic extends LABaseVisitor<Void> {
         if (table.exists(var_name)) {  // non-existance already handled by visitIdentificador
 
             LAType var_type = table.verify(var_name);
+            String ptr_hat = (var_type == LAType.PTR_INTEGER) ? "^" : "";
 
             /*
-             * Errors out if variable and expression have different types,
+             * Errors-out if variable and expression have different types,
              * and they both aren't a combination of INTEGER & REAL (since
              * an INTEGER can be attributed to a REAL variable, etc).
              */
-            if (
-                    var_type != exp_type &&
-                    !((var_type == LAType.INTEGER && exp_type == LAType.REAL) ||
-                     (var_type == LAType.REAL && exp_type == LAType.INTEGER))
-            ) {
+            if (areTypesIncompatible(var_type, exp_type)) {
 
                 LASemanticUtils.addSemanticError(
                     ctx.start,
-                    "atribuicao nao compativel para " + var_name
+                    "atribuicao nao compativel para " + ptr_hat + var_name
                 );
 
             }

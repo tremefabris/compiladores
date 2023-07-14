@@ -225,8 +225,7 @@ public class LASemanticUtils {
     verifyType(SymbolTable table, LAParser.Parcela_nao_unarioContext ctx) {
         
         if (ctx.identificador() != null) {
-            // TODO: deal with addresses
-            return null;
+            return LAType.MEM_ADDR;
         } else {  // CADEIA
             return LAType.LITERAL;
         }
@@ -245,11 +244,28 @@ public class LASemanticUtils {
         if (ctx.identificador() != null) {
 
             String ident_name = ctx.identificador().getText();
+            LAType ident_type = null;
+
             if (table.exists(ident_name)) {
-                return table.verify(ident_name);
+                ident_type = table.verify(ident_name);
             } else {
                 return null;
             }
+
+            if (ctx.getText().contains("^")) {    // dereference operator
+
+                switch(ident_type) {
+                    case PTR_INTEGER:
+                        ident_type = LAType.INTEGER;
+                        break;
+                    default:
+                        ident_type = null;
+                        break;
+                }
+
+            }
+
+            return ident_type;
 
         /*
          * Not sure what this even means...
