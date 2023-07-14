@@ -33,6 +33,8 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         saida.append("\n");
         saida.append("int main() {\n");
 
+        ctx.corpo().declaracao_local().forEach(decloca -> visitDeclaracao_local(decloca));;
+
         ctx.corpo().cmd().forEach(comando -> visitCmd(comando));// ainda esta incompleto
 
         saida.append("}\n");
@@ -60,6 +62,11 @@ public class LAGeradorC extends LABaseVisitor<Void> {
     @Override
     public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         // TODO: declarações globais
+        if (ctx.tipo_estendido() != null){// é função
+
+        }else{// é procedimento
+
+        }
 
         return null;
     }
@@ -111,7 +118,6 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitVariavel(LAParser.VariavelContext ctx) {
-        int a = 0;
         String strtipo = ctx.tipo().getText();
         LAType tipo = LAType.INVALID;
         switch (strtipo) {/*
@@ -155,12 +161,34 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitTipo(LAParser.TipoContext ctx) {
+        // TODO: trabalha registros e ponte
 
         return null;
     }
 
     @Override
     public Void visitCmd(LAParser.CmdContext ctx) {
+        if (ctx.cmdAtribuicao() != null){
+            visitCmdAtribuicao(ctx.cmdAtribuicao()); 
+        }else if(ctx.cmdLeia() != null) {
+            visitCmdLeia(ctx.cmdLeia());
+        }else if(ctx.cmdCaso() != null){
+            visitCmdCaso(ctx.cmdCaso());
+        }else if(ctx.cmdChamada() != null){
+            visitCmdCaso(ctx.cmdCaso());
+        }else if(ctx.cmdEnquanto() != null){
+            visitCmdEnquanto(ctx.cmdEnquanto());
+        }else if(ctx.cmdEscreva() != null){
+            visitCmdEscreva(ctx.cmdEscreva());
+        }else if(ctx.cmdFaca() != null){
+            visitCmdFaca(ctx.cmdFaca());
+        }else if(ctx.cmdPara() != null){
+            visitCmdPara(ctx.cmdPara());
+        }else if(ctx.cmdRetorne() != null){
+            visitCmdRetorne(ctx.cmdRetorne());
+        }else {
+            visitCmdSe(ctx.cmdSe());
+        }
 
         return null;
     }
