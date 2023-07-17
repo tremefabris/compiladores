@@ -3,6 +3,8 @@ package br.ufscar.dc.compiladores.lac;
 import java.util.LinkedList;
 import java.util.List;
 
+import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
+
 
 public class Scopes {
     
@@ -27,6 +29,22 @@ public class Scopes {
 
     public void abandonScope() {
         tableStack.pop();
+    }
+
+    public boolean exists(String var_name) {
+        for (SymbolTable st: tableStack)
+            if (st.exists(var_name))
+                return true;
+
+        return false;
+    }
+
+    public LAType verifyType(String var_name) {
+        for (SymbolTable st: tableStack)
+            if (st.exists(var_name))
+                return st.verify(var_name);
+
+        return LAType.INVALID;
     }
 
 }

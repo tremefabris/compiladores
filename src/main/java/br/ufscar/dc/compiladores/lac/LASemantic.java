@@ -2,14 +2,15 @@ package br.ufscar.dc.compiladores.lac;
 
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
-
 public class LASemantic extends LABaseVisitor<Void> {
 
-    SymbolTable table;
+    Scopes scopes;
+    // SymbolTable table;
 
     @Override
     public Void visitPrograma(LAParser.ProgramaContext ctx) {
-        table = new SymbolTable();
+        scopes = new Scopes();
+        // table = new SymbolTable();
         return super.visitPrograma(ctx);
     }
     
@@ -51,14 +52,13 @@ public class LASemantic extends LABaseVisitor<Void> {
 
         for (LAParser.IdentificadorContext ic: ctx.identificador()) {
 
-            if (table.exists(ic.IDENT(0).getText()))
+            if (scopes.exists(ic.IDENT(0).getText()))  // TODO: adapt to a.b.c
                 LASemanticUtils.addSemanticError(
                     ic.IDENT(0).getSymbol(),
                     "identificador " + ic.IDENT(0).getText() + " ja declarado anteriormente" 
                 );
             
             else {
-
                 LAType var_type = null;
                 switch(ctx.tipo().getText()) {
 
@@ -82,11 +82,14 @@ public class LASemantic extends LABaseVisitor<Void> {
                         break;
                 
                 }
+                
+                System.out.println("::" + ctx.tipo().getText() + "::");
+                System.out.println(ctx.getParent().getText());
 
-                table.add(ic.IDENT(0).getText(), var_type);
+                scopes.currentScope().add(ic.IDENT(0).getText(), var_type);
             }
         }
-            
+
         return super.visitTipo(ctx.tipo());  // Skips visitIdentificador
     }
 
@@ -100,28 +103,14 @@ public class LASemantic extends LABaseVisitor<Void> {
          */
         
         // Syntatic analyzer won't allow to get here if ctx.IDENT(0) == null
-        if (!table.exists(ctx.IDENT(0).getText()))
+        
+        if (!scopes.exists(ctx.IDENT(0).getText()))
             LASemanticUtils.addSemanticError(
                 ctx.IDENT(0).getSymbol(),
                 "identificador " + ctx.IDENT(0).getText() + " nao declarado"
             );
 
         return super.visitIdentificador(ctx);
-    }
-
-    public static boolean areTypesIncompatible(LAType var, LAType exp) {
-        boolean ret = (
-            var != exp &&
-            !(
-                (var == LAType.INTEGER && exp == LAType.REAL) ||
-                (var == LAType.REAL && exp == LAType.INTEGER)
-            ) &&
-            !(
-                (var == LAType.PTR_INTEGER && exp == LAType.MEM_ADDR)
-            )
-        );
-
-        return ret;
     }
 
     @Override
@@ -132,14 +121,14 @@ public class LASemantic extends LABaseVisitor<Void> {
          */
         
         LAType exp_type = LASemanticUtils.verifyType(
-            table, ctx.expressao()
+            scopes, ctx.expressao()
         );
         String var_name = ctx.identificador().getText();
 
 
-        if (table.exists(var_name)) {  // non-existance already handled by visitIdentificador
+        if (scopes.exists(var_name)) {  // non-existance already handled by visitIdentificador
 
-            LAType var_type = table.verify(var_name);
+            LAType var_type = scopes.verifyType(var_name);
             String ptr_hat = (var_type == LAType.PTR_INTEGER) ? "^" : "";
 
             /*
@@ -147,7 +136,7 @@ public class LASemantic extends LABaseVisitor<Void> {
              * and they both aren't a combination of INTEGER & REAL (since
              * an INTEGER can be attributed to a REAL variable, etc).
              */
-            if (areTypesIncompatible(var_type, exp_type)) {
+            if (LASemanticUtils.areTypesIncompatible(var_type, exp_type)) {
 
                 LASemanticUtils.addSemanticError(
                     ctx.start,

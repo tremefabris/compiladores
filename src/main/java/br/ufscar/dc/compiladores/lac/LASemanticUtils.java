@@ -33,11 +33,11 @@ public class LASemanticUtils {
      * EXPRESSAO VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.ExpressaoContext ctx) {
+    verifyType(Scopes scopes, LAParser.ExpressaoContext ctx) {
         LAType ret = null;
 
         for (LAParser.Termo_logicoContext tlc: ctx.termo_logico()) {
-            LAType aux = verifyType(table, tlc);
+            LAType aux = verifyType(scopes, tlc);
 
             if (ret == null) {
                 ret = aux;
@@ -53,11 +53,11 @@ public class LASemanticUtils {
      * TERMO LOGICO VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Termo_logicoContext ctx) {
+    verifyType(Scopes scopes, LAParser.Termo_logicoContext ctx) {
         LAType ret = null;
 
         for (LAParser.Fator_logicoContext flc: ctx.fator_logico()) {
-            LAType aux = verifyType(table, flc);
+            LAType aux = verifyType(scopes, flc);
 
             if (ret == null) {
                 ret = aux;
@@ -73,8 +73,8 @@ public class LASemanticUtils {
      * FATOR LOGICO VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Fator_logicoContext ctx) {
-        LAType ret = verifyType(table, ctx.parcela_logica());
+    verifyType(Scopes scopes, LAParser.Fator_logicoContext ctx) {
+        LAType ret = verifyType(scopes, ctx.parcela_logica());
         return ret;
     }
 
@@ -82,14 +82,14 @@ public class LASemanticUtils {
      * PARCELA LOGICA VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Parcela_logicaContext ctx) {
+    verifyType(Scopes scopes, LAParser.Parcela_logicaContext ctx) {
         LAType ret = null;
 
         if (ctx.exp_relacional() == null) {    // means it's ('verdadeiro' | 'falso')
             ret = LAType.LOGICAL;
         } else {                               // means it's exp_relacional
             ret = verifyType(
-                table, ctx.exp_relacional()
+                scopes, ctx.exp_relacional()
             );
         }
 
@@ -100,11 +100,11 @@ public class LASemanticUtils {
      * EXPRESSAO RELACIONAL VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Exp_relacionalContext ctx) {
+    verifyType(Scopes scopes, LAParser.Exp_relacionalContext ctx) {
         LAType ret = null;
 
         for (LAParser.Exp_aritmeticaContext eac: ctx.exp_aritmetica()) {
-            LAType aux = verifyType(table, eac);
+            LAType aux = verifyType(scopes, eac);
 
             if (ret == null) {
                 ret = aux;
@@ -129,11 +129,11 @@ public class LASemanticUtils {
      * EXPRESSAO ARITMETICA VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Exp_aritmeticaContext ctx) {
+    verifyType(Scopes scopes, LAParser.Exp_aritmeticaContext ctx) {
         LAType ret = null;
 
         for (LAParser.TermoContext tc: ctx.termo()) {
-            LAType aux = verifyType(table, tc);
+            LAType aux = verifyType(scopes, tc);
 
             if (ret == null) {
                 ret = aux;
@@ -149,11 +149,11 @@ public class LASemanticUtils {
      * TERMO VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.TermoContext ctx) {
+    verifyType(Scopes scopes, LAParser.TermoContext ctx) {
         LAType ret = null;
 
         for (LAParser.FatorContext fc: ctx.fator()) {
-            LAType aux = verifyType(table, fc);
+            LAType aux = verifyType(scopes, fc);
 
             if (ret == null) {
                 ret = aux;
@@ -181,11 +181,11 @@ public class LASemanticUtils {
      * FATOR VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.FatorContext ctx) {
+    verifyType(Scopes scopes, LAParser.FatorContext ctx) {
         LAType ret = null;
 
         for (LAParser.ParcelaContext pc: ctx.parcela()) {
-            LAType aux = verifyType(table, pc);
+            LAType aux = verifyType(scopes, pc);
 
             if (ret == null) {
                 ret = aux;
@@ -202,16 +202,16 @@ public class LASemanticUtils {
      * PARCELA VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.ParcelaContext ctx) {
+    verifyType(Scopes scopes, LAParser.ParcelaContext ctx) {
         LAType ret = null;
 
         if (ctx.parcela_unario() != null) {
 
-            ret = verifyType(table, ctx.parcela_unario());
+            ret = verifyType(scopes, ctx.parcela_unario());
 
         } else {  // parcela_nao_unario
 
-            ret = verifyType(table, ctx.parcela_nao_unario());
+            ret = verifyType(scopes, ctx.parcela_nao_unario());
 
         }
 
@@ -222,7 +222,7 @@ public class LASemanticUtils {
      * PARCELA NAO UNARIA VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Parcela_nao_unarioContext ctx) {
+    verifyType(Scopes scopes, LAParser.Parcela_nao_unarioContext ctx) {
         
         if (ctx.identificador() != null) {
             return LAType.MEM_ADDR;
@@ -236,7 +236,7 @@ public class LASemanticUtils {
      * PARCELA UNARIA VERIFICATION
      */
     public static LAType
-    verifyType(SymbolTable table, LAParser.Parcela_unarioContext ctx) {
+    verifyType(Scopes scopes, LAParser.Parcela_unarioContext ctx) {
 
         /*
          * If it's a variable...
@@ -246,9 +246,14 @@ public class LASemanticUtils {
             String ident_name = ctx.identificador().getText();
             LAType ident_type = null;
 
-            if (table.exists(ident_name)) {
-                ident_type = table.verify(ident_name);
-            } else {
+            boolean non_existent = true;
+            for (SymbolTable st: scopes.browseNestedScopes()) {
+                if (st.exists(ident_name)) {
+                    ident_type = st.verify(ident_name);
+                    non_existent = false;
+                }
+            }
+            if (non_existent) {
                 return null;
             }
 
@@ -274,7 +279,7 @@ public class LASemanticUtils {
             
             LAType ret = null;
             for (LAParser.ExpressaoContext ec: ctx.expressao()) {
-                LAType aux = verifyType(table, ec);
+                LAType aux = verifyType(scopes, ec);
 
                 if (ret == null) {
                     ret = aux;
@@ -304,9 +309,27 @@ public class LASemanticUtils {
          */
         } else {  // '(' expressao ')'
 
-            return verifyType(table, ctx.expressao(0));
+            return verifyType(scopes, ctx.expressao(0));
 
         }
+    }
+
+    /*
+     * TYPE INCOMPATIBILY VERIFICATION
+     */
+    public static boolean areTypesIncompatible(LAType var, LAType exp) {
+        boolean ret = (
+            var != exp &&
+            !(
+                (var == LAType.INTEGER && exp == LAType.REAL) ||
+                (var == LAType.REAL && exp == LAType.INTEGER)
+            ) &&
+            !(
+                (var == LAType.PTR_INTEGER && exp == LAType.MEM_ADDR)
+            )
+        );
+
+        return ret;
     }
 
 }
