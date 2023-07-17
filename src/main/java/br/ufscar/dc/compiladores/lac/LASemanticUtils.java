@@ -246,14 +246,10 @@ public class LASemanticUtils {
             String ident_name = ctx.identificador().getText();
             LAType ident_type = null;
 
-            boolean non_existent = true;
-            for (SymbolTable st: scopes.browseNestedScopes()) {
-                if (st.exists(ident_name)) {
-                    ident_type = st.verify(ident_name);
-                    non_existent = false;
-                }
-            }
-            if (non_existent) {
+
+            if (scopes.exists(ident_name)) {
+                ident_type = scopes.verifyType(ident_name);
+            } else {
                 return null;
             }
 
