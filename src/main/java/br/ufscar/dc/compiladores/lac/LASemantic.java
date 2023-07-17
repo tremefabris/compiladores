@@ -5,12 +5,10 @@ import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 public class LASemantic extends LABaseVisitor<Void> {
 
     Scopes scopes;
-    // SymbolTable table;
 
     @Override
     public Void visitPrograma(LAParser.ProgramaContext ctx) {
         scopes = new Scopes();
-        // table = new SymbolTable();
         return super.visitPrograma(ctx);
     }
     
