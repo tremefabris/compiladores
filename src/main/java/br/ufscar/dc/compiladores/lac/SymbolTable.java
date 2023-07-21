@@ -14,6 +14,7 @@ public class SymbolTable {
         INTEGER,
         REAL,
         LOGICAL,
+        REGISTER,
         PTR_INTEGER,
         MEM_ADDR,
         INVALID,

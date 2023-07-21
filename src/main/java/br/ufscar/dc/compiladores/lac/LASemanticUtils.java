@@ -2,6 +2,8 @@ package br.ufscar.dc.compiladores.lac;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
@@ -326,6 +328,31 @@ public class LASemanticUtils {
         );
 
         return ret;
+    }
+
+    // TODO: comment
+    public static boolean isRegisterAttribute(LAParser.IdentificadorContext ctx) {
+
+        boolean ret = (ctx.getParent().getParent() instanceof LAParser.RegistroContext);
+        return ret;
+
+    }
+
+    public static List<String> getRegisterVariableNames(LAParser.IdentificadorContext ctx) {
+
+        List<String> reg_var_names = new ArrayList<>();
+
+        LAParser.VariavelContext
+        reg_decl_ctx = (LAParser.VariavelContext) ctx.getParent()
+                                                     .getParent()
+                                                     .getParent()
+                                                     .getParent(); // variavel context
+
+        for (LAParser.IdentificadorContext ic: reg_decl_ctx.identificador()) {
+            reg_var_names.add(ic.getText());
+        }
+
+        return reg_var_names;
     }
 
 }

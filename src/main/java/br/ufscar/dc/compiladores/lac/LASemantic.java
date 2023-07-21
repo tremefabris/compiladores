@@ -2,6 +2,8 @@ package br.ufscar.dc.compiladores.lac;
 
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
+import java.util.List;
+
 public class LASemantic extends LABaseVisitor<Void> {
 
     Scopes scopes;
@@ -33,6 +35,7 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitTipo_basico_ident(ctx);
     }
 
+    // TODO: comment this func more thoroughly
     @Override
     public Void visitVariavel(LAParser.VariavelContext ctx) {
 
@@ -50,12 +53,12 @@ public class LASemantic extends LABaseVisitor<Void> {
 
         for (LAParser.IdentificadorContext ic: ctx.identificador()) {
 
-            if (scopes.exists(ic.IDENT(0).getText()))  // TODO: adapt to a.b.c
+            if (scopes.exists(ic.IDENT(0).getText()))
                 LASemanticUtils.addSemanticError(
                     ic.IDENT(0).getSymbol(),
                     "identificador " + ic.IDENT(0).getText() + " ja declarado anteriormente" 
                 );
-            
+
             else {
                 LAType var_type = null;
                 switch(ctx.tipo().getText()) {
@@ -76,15 +79,38 @@ public class LASemantic extends LABaseVisitor<Void> {
                         var_type = LAType.LOGICAL;
                         break;
                     default:
-                        var_type = LAType.INVALID;
+
+                        if (ctx.tipo().getText().startsWith("registro")) {
+                            var_type = LAType.REGISTER;
+                        } else {
+                            var_type = LAType.INVALID;
+                        }
+
                         break;
                 
                 }
-                
-                System.out.println("::" + ctx.tipo().getText() + "::");
-                System.out.println(ctx.getParent().getText());
 
-                scopes.currentScope().add(ic.IDENT(0).getText(), var_type);
+                if (LASemanticUtils.isRegisterAttribute(ic)) {
+
+                    List<String>
+                    reg_var_names = LASemanticUtils.getRegisterVariableNames(ic);
+
+                    for (String reg_var: reg_var_names) {
+
+                        String var_name = reg_var + "." + ic.IDENT(0).getText();
+                        scopes.currentScope().add(var_name, var_type);
+                    
+                        // for testing
+                        // System.out.println(reg_var);
+                        // System.out.println(var_name);
+                        // for testing 
+
+                    }
+
+                } else {
+                    String var_name = ic.IDENT(0).getText();
+                    scopes.currentScope().add(var_name, var_type);
+                }
             }
         }
 
