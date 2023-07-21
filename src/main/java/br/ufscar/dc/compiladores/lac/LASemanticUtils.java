@@ -338,21 +338,60 @@ public class LASemanticUtils {
 
     }
 
+    // TODO: comment
     public static List<String> getRegisterVariableNames(LAParser.IdentificadorContext ctx) {
 
         List<String> reg_var_names = new ArrayList<>();
 
-        LAParser.VariavelContext
-        reg_decl_ctx = (LAParser.VariavelContext) ctx.getParent()
-                                                     .getParent()
-                                                     .getParent()
-                                                     .getParent(); // variavel context
+        ParserRuleContext ctx_ggfather = ctx.getParent()
+                                            .getParent()
+                                            .getParent()
+                                            .getParent();
 
-        for (LAParser.IdentificadorContext ic: reg_decl_ctx.identificador()) {
-            reg_var_names.add(ic.getText());
+        if (ctx_ggfather instanceof LAParser.VariavelContext) {
+
+            LAParser.VariavelContext
+            reg_decl_ctx = (LAParser.VariavelContext) ctx_ggfather;
+
+            for (LAParser.IdentificadorContext ic: reg_decl_ctx.identificador()) {
+                reg_var_names.add(ic.getText());
+            }
+
+        } else if (ctx_ggfather instanceof LAParser.Declaracao_localContext) {
+
+            LAParser.Declaracao_localContext
+            reg_decl_ctx = (LAParser.Declaracao_localContext) ctx_ggfather;
+
+            reg_var_names.add(reg_decl_ctx.IDENT().getText());
+
         }
 
+
         return reg_var_names;
+    }
+
+    public static List<String> getCustomTypeVariableNames(LAParser.Tipo_basico_identContext ctx) {
+
+        List<String> ct_var_names = new ArrayList<>();
+
+        ParserRuleContext ctx_gfather = ctx.getParent()
+                                           .getParent()
+                                           .getParent();
+
+        if (ctx_gfather instanceof LAParser.VariavelContext) {
+
+            LAParser.VariavelContext
+            ct_decl_ctx = (LAParser.VariavelContext) ctx_gfather;
+
+            for (LAParser.IdentificadorContext ic: ct_decl_ctx.identificador()) {
+
+                ct_var_names.add(ic.getText());
+
+            }
+
+        }
+
+        return ct_var_names;
     }
 
 }

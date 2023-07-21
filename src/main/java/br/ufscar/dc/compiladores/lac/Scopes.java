@@ -47,4 +47,12 @@ public class Scopes {
         return LAType.INVALID;
     }
 
+    public SymbolTable getTableFrom(String var_name) {
+        for (SymbolTable st: tableStack)
+            if (st.exists(var_name))
+                return st;
+
+        return null;                
+    }
+
 }

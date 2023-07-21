@@ -15,6 +15,7 @@ public class SymbolTable {
         REAL,
         LOGICAL,
         REGISTER,
+        TYPE,
         PTR_INTEGER,
         MEM_ADDR,
         INVALID,
@@ -52,5 +53,19 @@ public class SymbolTable {
 
     public LAType verify(String name) {
         return table.get(name).type;
+    }
+
+    public Map<String, LAType> getVariablesStartingWith(String prefix) {
+
+        Map<String, LAType> vars = new HashMap<>();
+        
+        for (Map.Entry<String, EntrySymbolTable> entry: table.entrySet()) {
+
+            if (entry.getKey().startsWith(prefix))
+                vars.put(entry.getKey(), entry.getValue().type);
+
+        }
+
+        return vars;
     }
 }

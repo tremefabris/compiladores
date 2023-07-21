@@ -3,6 +3,7 @@ package br.ufscar.dc.compiladores.lac;
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
 import java.util.List;
+import java.util.Map;
 
 public class LASemantic extends LABaseVisitor<Void> {
 
@@ -15,21 +16,82 @@ public class LASemantic extends LABaseVisitor<Void> {
     }
     
     @Override
+    public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
+        if (ctx.tipo() != null) {
+
+            if (scopes.exists(ctx.IDENT().getText())) {
+            
+                LASemanticUtils.addSemanticError(
+                    ctx.IDENT().getSymbol(),
+                    "identificador " + ctx.IDENT().getText() + " ja declarado anteriormente" 
+                );
+            
+            } else {
+
+                LAType var_type = LAType.TYPE;
+                String var_name = ctx.IDENT().getText();
+
+                scopes.currentScope().add(var_name, var_type);
+
+            }
+
+        }
+
+        return super.visitDeclaracao_local(ctx);
+    }
+
+    // TODO: comment thorougly
+    @Override
     public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
         
-        /*
-         *  CATCHES ERROR: Undeclared type
-         * 
-         *  Considers every possible type apart from basic types (tipo_basico)
-         *  as an undeclared type (good enough for T3)
-         */
         if (ctx.IDENT() != null) {
 
-            LASemanticUtils.addSemanticError(
-                ctx.IDENT().getSymbol(),
-                "tipo " + ctx.IDENT().getText() + " nao declarado"
-            );
+            String type_text = ctx.IDENT().getText();
 
+            if (scopes.exists(type_text)) {
+                
+                Map<String, LAType> ct_fields;
+                List<String> ct_var_names = LASemanticUtils.getCustomTypeVariableNames(ctx);
+
+                boolean contains_type = false;
+                for (String var_name: ct_var_names) {
+                    if (var_name.equals(type_text))
+                        contains_type = true;
+                }
+                if (contains_type)
+                    ct_var_names.remove(type_text);
+
+                SymbolTable type_table;
+
+                if ((type_table = scopes.getTableFrom(type_text)) != null) {
+                    ct_fields = type_table.getVariablesStartingWith(type_text);
+
+                    contains_type = false;
+                    for (Map.Entry<String, LAType> ct_field: ct_fields.entrySet()) {
+                        if (ct_field.getKey().equals(type_text))
+                            contains_type = true;
+                    }
+                    if (contains_type)
+                        ct_fields.remove(type_text);
+
+                    for (String var_name: ct_var_names) {
+                        for (Map.Entry<String, LAType> field: ct_fields.entrySet()) {
+
+                            String ct_field_suffix = field.getKey().split("\\.")[1];
+
+                            scopes.currentScope().add(
+                                var_name + "." + ct_field_suffix,
+                                field.getValue()
+                            );
+                        }
+                    }
+                }
+            } else {
+                LASemanticUtils.addSemanticError(
+                    ctx.IDENT().getSymbol(),
+                    "tipo " + type_text + " nao declarado"
+                );
+            }
         }
 
         return super.visitTipo_basico_ident(ctx);
@@ -99,12 +161,6 @@ public class LASemantic extends LABaseVisitor<Void> {
 
                         String var_name = reg_var + "." + ic.IDENT(0).getText();
                         scopes.currentScope().add(var_name, var_type);
-                    
-                        // for testing
-                        // System.out.println(reg_var);
-                        // System.out.println(var_name);
-                        // for testing 
-
                     }
 
                 } else {
@@ -128,10 +184,10 @@ public class LASemantic extends LABaseVisitor<Void> {
         
         // Syntatic analyzer won't allow to get here if ctx.IDENT(0) == null
         
-        if (!scopes.exists(ctx.IDENT(0).getText()))
+        if (!scopes.exists(ctx.getText()))
             LASemanticUtils.addSemanticError(
                 ctx.IDENT(0).getSymbol(),
-                "identificador " + ctx.IDENT(0).getText() + " nao declarado"
+                "identificador " + ctx.getText() + " nao declarado"
             );
 
         return super.visitIdentificador(ctx);
