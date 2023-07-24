@@ -55,6 +55,7 @@ public class SymbolTable {
         return table.get(name).type;
     }
 
+    // TODO: COMMENT
     public Map<String, LAType> getVariablesStartingWith(String prefix) {
 
         Map<String, LAType> vars = new HashMap<>();

@@ -43,7 +43,7 @@ public class LASemantic extends LABaseVisitor<Void> {
     // TODO: comment thorougly
     @Override
     public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
-        
+
         if (ctx.IDENT() != null) {
 
             String type_text = ctx.IDENT().getText();
@@ -163,6 +163,20 @@ public class LASemantic extends LABaseVisitor<Void> {
                         scopes.currentScope().add(var_name, var_type);
                     }
 
+                } else if (LASemanticUtils.isArray(ic)) {
+
+                    for (
+                            int i = 0;
+                            i < Integer.parseInt(LASemanticUtils.getArraySize(ic));
+                            i++
+                    ) {
+                        String var_name = ic.IDENT(0).getText();
+                        scopes.currentScope().add(
+                            var_name + "." + Integer.toString(i),
+                            var_type
+                        );
+                    }
+
                 } else {
                     String var_name = ic.IDENT(0).getText();
                     scopes.currentScope().add(var_name, var_type);
@@ -173,21 +187,23 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitTipo(ctx.tipo());  // Skips visitIdentificador
     }
 
+    // TODO: comment thorougly
     @Override
     public Void visitIdentificador(LAParser.IdentificadorContext ctx) {
+        
+        String ident_name;
 
-        /*
-         * HANDLES UNITIALIZED VARIABLES
-         * 
-         * Adds semantic error if variable is being used but wasn't initialized.
-         */
-        
-        // Syntatic analyzer won't allow to get here if ctx.IDENT(0) == null
-        
-        if (!scopes.exists(ctx.getText()))
+        if (LASemanticUtils.isArray(ctx)) {
+            ident_name = LASemanticUtils.formatArrayIdent(ctx, false);
+        }
+        else {
+            ident_name = ctx.getText();
+        }
+
+        if (!scopes.exists(ident_name))
             LASemanticUtils.addSemanticError(
                 ctx.IDENT(0).getSymbol(),
-                "identificador " + ctx.getText() + " nao declarado"
+                "identificador " + ident_name + " nao declarado"
             );
 
         return super.visitIdentificador(ctx);
@@ -203,8 +219,18 @@ public class LASemantic extends LABaseVisitor<Void> {
         LAType exp_type = LASemanticUtils.verifyType(
             scopes, ctx.expressao()
         );
-        String var_name = ctx.identificador().getText();
 
+        String var_name;
+        boolean isArray = false;
+        if (LASemanticUtils.isArray(ctx.identificador())) {
+
+            var_name = LASemanticUtils.formatArrayIdent(ctx.identificador(), false);
+            isArray = true;
+        
+        }
+        else {
+            var_name = ctx.identificador().getText();
+        }
 
         if (scopes.exists(var_name)) {  // non-existance already handled by visitIdentificador
 
@@ -218,6 +244,9 @@ public class LASemantic extends LABaseVisitor<Void> {
              */
             if (LASemanticUtils.areTypesIncompatible(var_type, exp_type)) {
 
+                if (isArray)
+                    var_name = LASemanticUtils.formatArrayIdent(ctx.identificador(), true);
+
                 LASemanticUtils.addSemanticError(
                     ctx.start,
                     "atribuicao nao compativel para " + ptr_hat + var_name
@@ -227,6 +256,33 @@ public class LASemantic extends LABaseVisitor<Void> {
         }
 
         return super.visitCmdAtribuicao(ctx);
+    }
+
+    @Override
+    public Void visitCmdPara(LAParser.CmdParaContext ctx) {
+
+        scopes.createNewScope();
+        scopes.currentScope().add(
+            ctx.IDENT().getText(),
+            LASemanticUtils.verifyType(scopes, ctx.exp_aritmetica(0))
+        );
+
+        /*
+        * Executing the rest of cmdPara manually
+        */
+        super.visitExp_aritmetica(ctx.exp_aritmetica(0));
+        super.visitExp_aritmetica(ctx.exp_aritmetica(1));
+
+        for (LAParser.CmdContext cmd_ctx: ctx.cmd()) {
+            super.visitCmd(cmd_ctx);
+        }
+        /*
+        * Now, we are at the "exit" of cmdPara
+        */
+
+        scopes.abandonScope();
+
+        return null;
     }
 
 }

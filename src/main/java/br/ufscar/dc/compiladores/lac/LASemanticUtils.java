@@ -245,7 +245,21 @@ public class LASemanticUtils {
          */
         if (ctx.identificador() != null) {
 
-            String ident_name = ctx.identificador().getText();
+            String ident_name;
+
+            /*
+             * If the variable in question is an array...
+             */
+            if (LASemanticUtils.isArray(ctx.identificador())) {
+                ident_name = formatArrayIdent(ctx.identificador(), false);
+            }
+            /*
+             * If it isn't an array...
+             */
+            else {
+                ident_name = ctx.identificador().getText();
+            }
+
             LAType ident_type = null;
 
 
@@ -370,6 +384,7 @@ public class LASemanticUtils {
         return reg_var_names;
     }
 
+    // TODO: comment
     public static List<String> getCustomTypeVariableNames(LAParser.Tipo_basico_identContext ctx) {
 
         List<String> ct_var_names = new ArrayList<>();
@@ -388,10 +403,53 @@ public class LASemanticUtils {
                 ct_var_names.add(ic.getText());
 
             }
-
         }
 
         return ct_var_names;
+    }
+
+    // TODO: comment
+    public static boolean isArray(LAParser.IdentificadorContext ctx) {
+        String ident_text = ctx.getText();
+
+        return (
+            ident_text.contains("[") &&
+            ident_text.contains("]")
+        );
+    }
+
+    // TODO: comment
+    public static String getArraySize(LAParser.IdentificadorContext ctx) {
+        String ident_text = ctx.getText();
+
+        return ident_text.substring(
+                    ident_text.indexOf("[") + 1, ident_text.indexOf("]")
+        );
+    }
+
+    // TODO: comment
+    public static String formatArrayIdent(LAParser.IdentificadorContext ctx, boolean reverse) {
+        if (!reverse) {
+            String array_ref = LASemanticUtils.getArraySize(ctx);
+            String array_ident = ctx.getText().substring(0, ctx.getText().indexOf("["));
+
+            int array_size;
+            try {
+                // Try to convert array reference to an Integer
+                array_size = Integer.parseInt(array_ref);
+
+            } catch (NumberFormatException e) {
+                // Otherwise (if it isn't an Integer), work around it
+                array_size = 0;
+
+            }
+
+            return array_ident + "." + Integer.toString(array_size);
+        }
+        else {
+            String array_ident = ctx.getText().replace('.', '[');
+            return array_ident;
+        }
     }
 
 }

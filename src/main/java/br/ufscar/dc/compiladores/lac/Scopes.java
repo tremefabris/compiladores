@@ -6,6 +6,7 @@ import java.util.List;
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
 
 
+// TODO: COMMENT
 public class Scopes {
     
     private LinkedList<SymbolTable> tableStack;
