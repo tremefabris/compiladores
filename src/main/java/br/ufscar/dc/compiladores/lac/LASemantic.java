@@ -18,6 +18,28 @@ public class LASemantic extends LABaseVisitor<Void> {
     }
     
     @Override
+    public Void visitCorpo(LAParser.CorpoContext ctx) {
+
+        /*
+         * HANDLES RETURN STATEMENT IN MAIN
+         * ALGORITHM SCOPE
+         */
+
+        for (LAParser.CmdContext cc: ctx.cmd()) {
+            if (cc.cmdRetorne() != null) {
+
+                LASemanticUtils.addSemanticError(
+                    cc.cmdRetorne().getStart(),
+                    "comando retorne nao permitido nesse escopo"
+                );
+
+            }
+        }
+        
+        return super.visitCorpo(ctx);
+    }
+
+    @Override
     public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
         
         /*
@@ -617,18 +639,6 @@ public class LASemantic extends LABaseVisitor<Void> {
         scopes.abandonScope();
 
         return null;
-    }
-
-    @Override
-    public Void visitCmdChamada(LAParser.CmdChamadaContext ctx) {
-        
-        /*
-         * PROBABLY USED FOR PROCEDURE CALLS
-         */
-        
-        // System.out.println("\nIT'S A PROCEDURE!\n");
-        
-        return super.visitCmdChamada(ctx);
     }
 
 }
