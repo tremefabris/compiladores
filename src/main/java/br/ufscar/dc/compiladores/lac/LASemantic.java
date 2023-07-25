@@ -19,6 +19,18 @@ public class LASemantic extends LABaseVisitor<Void> {
     
     @Override
     public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
+        
+        /*
+         * CUSTOM TYPE DECLARATION HANDLING
+         * 
+         * All that's done in this visitor is creating
+         * in our Scopes a variable concerning the custom
+         * type.
+         * 
+         * The actual instantiation of custom types
+         * is handled by visitTipo_basico_ident.
+         */
+
         if (ctx.tipo() != null) {
 
             if (scopes.exists(ctx.IDENT().getText())) {
@@ -30,6 +42,9 @@ public class LASemantic extends LABaseVisitor<Void> {
             
             } else {
 
+                /*
+                 * Custom type for... custom types.
+                 */
                 LAType var_type = LAType.TYPE;
                 String var_name = ctx.IDENT().getText();
 
@@ -43,10 +58,18 @@ public class LASemantic extends LABaseVisitor<Void> {
     }
 
     // TODO: comment thorougly
+    // TODO: remember this is for function and procedure's declarations
     @Override
     public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         
-        if (ctx.tipo_estendido() != null) {   // means it's a function declaration
+        /*
+         * FUNCTIONS AND PROCEDURES DECLARATION
+         */
+
+        /*
+         * If we are dealing with a function declaration...
+         */
+        if (ctx.tipo_estendido() != null) {
 
             /*
              * Initially, we are concerned about the function's type.
@@ -222,10 +245,32 @@ public class LASemantic extends LABaseVisitor<Void> {
             }
         }
 
+        /*
+         * If not, we are dealing with a procedure...
+         */
+        else {
+            for (LAParser.CmdContext cc: ctx.cmd()) {
+
+                /*
+                 * If we have a return command amidst
+                 * other commands, error out.
+                 */
+                if (cc.cmdRetorne() != null) {
+
+                    LASemanticUtils.addSemanticError(
+                        cc.cmdRetorne().getStart(),
+                        "comando retorne nao permitido nesse escopo"
+                    );
+
+                }
+            }
+        }
+
         return null;
     }
 
     // TODO: comment thorougly
+    // TODO: remember this is custom type instantiation
     @Override
     public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
 
@@ -365,6 +410,7 @@ public class LASemantic extends LABaseVisitor<Void> {
     }
 
     // TODO: comment this func more thoroughly
+    // TODO: holy shit what a god function
     @Override
     public Void visitVariavel(LAParser.VariavelContext ctx) {
 
@@ -416,8 +462,20 @@ public class LASemantic extends LABaseVisitor<Void> {
                         }
 
                         break;
-                
                 }
+                /*
+                 * If it's a custom type, it has matched the previous
+                 * switch's default branch and var_type is now INVALID.
+                 * 
+                 * This prevents such from being the case.
+                 */
+                if (
+                    LASemanticUtils.isArray(ic) &&
+                    ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT() != null
+                ) {
+                    var_type = LAType.TYPE;                    
+                }
+
 
                 if (LASemanticUtils.isRegisterAttribute(ic)) {
 
@@ -432,16 +490,25 @@ public class LASemantic extends LABaseVisitor<Void> {
 
                 } else if (LASemanticUtils.isArray(ic)) {
 
-                    for (
-                            int i = 0;
-                            i < Integer.parseInt(LASemanticUtils.getArraySize(ic));
-                            i++
-                    ) {
+                    // the following was done because of test case 6,
+                    // where valor[maximoElementos] appears
+                    int array_size;
+                    String array_size_str = LASemanticUtils.getArraySize(ic);
+                    try {
+                        array_size = Integer.parseInt(array_size_str);
+                    }
+                    catch (NumberFormatException e) {
+                        array_size = 10;   // arbitrary value...
+                    }
+
+                    for (int i = 0; i < array_size; i++) {
+
                         String var_name = ic.IDENT(0).getText();
                         scopes.currentScope().add(
                             var_name + "." + Integer.toString(i),
                             var_type
                         );
+                    
                     }
 
                 } else {
@@ -558,7 +625,8 @@ public class LASemantic extends LABaseVisitor<Void> {
         /*
          * PROBABLY USED FOR PROCEDURE CALLS
          */
-        System.out.println("\nIT'S A PROCEDURE!\n");
+        
+        // System.out.println("\nIT'S A PROCEDURE!\n");
         
         return super.visitCmdChamada(ctx);
     }

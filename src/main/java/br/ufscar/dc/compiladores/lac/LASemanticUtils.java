@@ -248,7 +248,7 @@ public class LASemanticUtils {
             String ident_name;
 
             /*
-             * If the variable in question is an array...
+             * If the variable is an array...
              */
             if (LASemanticUtils.isArray(ctx.identificador())) {
                 ident_name = formatArrayIdent(ctx.identificador(), false);
@@ -262,14 +262,19 @@ public class LASemanticUtils {
 
             LAType ident_type = null;
 
-
+            /*
+             * Checking variable existence...
+             */
             if (scopes.exists(ident_name)) {
                 ident_type = scopes.verifyType(ident_name);
             } else {
                 return null;
             }
 
-            if (ctx.getText().contains("^")) {    // dereference operator
+            /*
+             * Dereferencing if needed...
+             */
+            if (ctx.getText().contains("^")) {
 
                 switch(ident_type) {
                     case PTR_INTEGER:
@@ -285,25 +290,11 @@ public class LASemanticUtils {
             return ident_type;
 
         /*
-         * This is probably for function type verification
-         * 
-         * Test case 5 worked, but maybe I should make this branch
-         * work properly by directly checking the function's type.
+         * If it's a function...
          */
         } else if (ctx.IDENT() != null) {
-            
-            LAType ret = null;
-            for (LAParser.ExpressaoContext ec: ctx.expressao()) {
-                LAType aux = verifyType(scopes, ec);
 
-                if (ret == null) {
-                    ret = aux;
-                } else if (ret != aux && aux != LAType.INVALID) {
-                    return LAType.INVALID;
-                }
-            }
-
-            return ret;
+            return scopes.verifyType(ctx.IDENT().getText());
         
         /*
          * If it's an integer...
@@ -387,19 +378,44 @@ public class LASemanticUtils {
         return reg_var_names;
     }
 
-    // TODO: comment
     public static List<String> getCustomTypeVariableNames(LAParser.Tipo_basico_identContext ctx) {
+
+        /*
+         * CUSTOM TYPE VARIABLES THAT NEED TO BE
+         * PROPERLY INITIALIZED
+         * 
+         * Here, we retrieve the identifier of variables
+         * that need to be properly initialized for a
+         * custom type.
+         */
 
         List<String> ct_var_names = new ArrayList<>();
 
         ParserRuleContext ctx_gfather = ctx.getParent()
-                                           .getParent()
                                            .getParent();
 
-        if (ctx_gfather instanceof LAParser.VariavelContext) {
+        /*
+         * If we are in a variable declaration (from
+         * 'variavel' grammar rule, for example)...
+         */
+        if (ctx_gfather.getParent() instanceof LAParser.VariavelContext) {
 
             LAParser.VariavelContext
-            ct_decl_ctx = (LAParser.VariavelContext) ctx_gfather;
+            ct_decl_ctx = (LAParser.VariavelContext) ctx_gfather.getParent();
+
+            for (LAParser.IdentificadorContext ic: ct_decl_ctx.identificador()) {
+
+                ct_var_names.add(ic.getText());
+
+            }
+        }
+        /*
+         * If we are in a function declaration...
+         */
+        else if (ctx_gfather instanceof LAParser.ParametroContext) {
+            
+            LAParser.ParametroContext
+            ct_decl_ctx = (LAParser.ParametroContext) ctx_gfather;
 
             for (LAParser.IdentificadorContext ic: ct_decl_ctx.identificador()) {
 
