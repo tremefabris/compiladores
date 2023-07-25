@@ -271,6 +271,16 @@ public class LASemantic extends LABaseVisitor<Void> {
          * If not, we are dealing with a procedure...
          */
         else {
+
+            String proc_name = ctx.IDENT().getText();
+            if (!scopes.exists(proc_name)) {
+
+                LAType proc_type = LAType.PROCEDURE;
+
+                scopes.currentScope().add(proc_name, proc_type);
+
+            }
+
             for (LAParser.CmdContext cc: ctx.cmd()) {
 
                 /*

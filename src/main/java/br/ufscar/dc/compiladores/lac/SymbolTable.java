@@ -16,6 +16,7 @@ public class SymbolTable {
         LOGICAL,
         REGISTER,
         TYPE,
+        PROCEDURE,
         PTR_INTEGER,
         MEM_ADDR,
         INVALID,
