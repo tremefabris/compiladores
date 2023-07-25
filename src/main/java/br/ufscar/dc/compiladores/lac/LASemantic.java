@@ -43,16 +43,18 @@ public class LASemantic extends LABaseVisitor<Void> {
     public Void visitDeclaracao_local(LAParser.Declaracao_localContext ctx) {
         
         /*
-         * CUSTOM TYPE DECLARATION HANDLING
+         * CUSTOM TYPE AND CONSTANTS DECLARATION HANDLING
          * 
-         * All that's done in this visitor is creating
-         * in our Scopes a variable concerning the custom
-         * type.
+         * In here, custom types* and constants' declarations
+         * are handled.
          * 
-         * The actual instantiation of custom types
-         * is handled by visitTipo_basico_ident.
+         * *: The actual instantiation of custom type
+         * variables is handled by visitTipo_basico_ident.
          */
 
+        /*
+         * If it's a custom type...
+         */
         if (ctx.tipo() != null) {
 
             if (scopes.exists(ctx.IDENT().getText())) {
@@ -74,6 +76,37 @@ public class LASemantic extends LABaseVisitor<Void> {
 
             }
 
+        }
+
+        /*
+         * If it's a constant...
+         */
+
+        else if (ctx.tipo_basico() != null) {
+
+            String const_name = ctx.IDENT().getText();
+
+            LAType const_type;
+            switch (ctx.tipo_basico().getText()) {
+                case "literal":
+                    const_type = LAType.LITERAL;
+                    break;
+                case "inteiro":
+                    const_type = LAType.INTEGER;
+                    break;
+                case "real":
+                    const_type = LAType.REAL;
+                    break;
+                case "logico":
+                    const_type = LAType.LOGICAL;
+                    break;
+                default:
+                    // unreachable
+                    const_type = LAType.INVALID;
+                    break;
+            }
+
+            scopes.currentScope().add(const_name, const_type);
         }
 
         return super.visitDeclaracao_local(ctx);
