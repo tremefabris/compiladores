@@ -285,7 +285,10 @@ public class LASemanticUtils {
             return ident_type;
 
         /*
-         * Not sure what this even means...
+         * This is probably for function type verification
+         * 
+         * Test case 5 worked, but maybe I should make this branch
+         * work properly by directly checking the function's type.
          */
         } else if (ctx.IDENT() != null) {
             

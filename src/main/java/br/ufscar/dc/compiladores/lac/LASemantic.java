@@ -1,7 +1,9 @@
 package br.ufscar.dc.compiladores.lac;
 
 import br.ufscar.dc.compiladores.lac.SymbolTable.LAType;
+import org.antlr.v4.runtime.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +40,189 @@ public class LASemantic extends LABaseVisitor<Void> {
         }
 
         return super.visitDeclaracao_local(ctx);
+    }
+
+    // TODO: comment thorougly
+    @Override
+    public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
+        
+        if (ctx.tipo_estendido() != null) {   // means it's a function declaration
+
+            /*
+             * Initially, we are concerned about the function's type.
+             * Since it's type can be deeply nested in our grammar,
+             * the following code is really indented and, consequently,
+             * really ugly...
+             */
+
+            String fn_name = ctx.IDENT().getText();
+            LAType fn_type;
+
+            if (ctx.tipo_estendido().getText().contains("^")) {
+                fn_type = LAType.PTR_INTEGER;
+            }
+            else {
+
+                if (ctx.tipo_estendido().tipo_basico_ident().IDENT() != null) {
+
+                    if (!scopes.exists(
+                            ctx.tipo_estendido()
+                                .tipo_basico_ident()
+                                .IDENT()
+                                .getText()
+                    )) {
+                        Token error_symbol = ctx.tipo_estendido()
+                                                .tipo_basico_ident()
+                                                .IDENT()
+                                                .getSymbol();
+                        String type_text   = ctx.tipo_estendido()
+                                                .tipo_basico_ident()
+                                                .IDENT()
+                                                .getText();
+
+                        LASemanticUtils.addSemanticError(
+                            error_symbol,
+                            "tipo " + type_text + " nao declarado"
+                        );
+                        fn_type = LAType.INVALID;
+
+                    } else {
+                        fn_type = LAType.TYPE;
+                    }
+
+                }
+                else {
+                    switch(ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()) {
+                        case "literal":
+                            fn_type = LAType.LITERAL;
+                            break;
+                        case "inteiro":
+                            fn_type = LAType.INTEGER;
+                            break;
+                        case "real":
+                            fn_type = LAType.REAL;
+                            break;
+                        case "logico":
+                            fn_type = LAType.LOGICAL;
+                            break;
+                        default:
+                            // unreachable
+                            fn_type = LAType.INVALID;
+                            break;
+            }}}
+            
+            /*
+             * Function type discovered!
+             * We store it in the current scope.
+             */
+            scopes.currentScope().add(fn_name, fn_type);
+
+            /*
+             * Parameter declaration.
+             * 
+             * We store every single parameter of
+             * the function as a variable to later
+             * infer its type, borrowing from the
+             * "register variable declaration" school
+             * of thought.
+             */
+            if (ctx.parametros() != null) {
+
+                int param_amount = ctx.parametros().parametro().size();
+                LAType[] param_types = new LAType[param_amount];
+
+                for (int i = 0; i < param_amount; i++) {
+                    String param_name = fn_name + "." + Integer.toString(i);
+
+                    /*
+                     * Discovering parameter types
+                     */
+                    LAParser.ParametroContext param = ctx.parametros().parametro(i);
+
+                    if (param.tipo_estendido().getText().contains("^")) {
+                        param_types[i] = LAType.PTR_INTEGER;
+                    }
+                    else if (param.tipo_estendido().tipo_basico_ident().IDENT() != null) {
+                        if (!scopes.exists(
+                                param.tipo_estendido()
+                                     .tipo_basico_ident()
+                                     .IDENT()
+                                     .getText()
+                        )) {
+                            Token error_symbol = param.tipo_estendido()
+                                                     .tipo_basico_ident()
+                                                     .IDENT()
+                                                     .getSymbol();
+                            String type_text   = param.tipo_estendido()
+                                                     .tipo_basico_ident()
+                                                     .IDENT()
+                                                     .getText();
+
+                            LASemanticUtils.addSemanticError(
+                                error_symbol,
+                                "tipo " + type_text + " nao declarado"
+                            );
+                            param_types[i] = LAType.INVALID;
+                        }
+                        else {
+                            param_types[i] = LAType.TYPE;
+                        }
+                    }
+                    else {
+                        switch(ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()) {
+                            case "literal":
+                                param_types[i] = LAType.LITERAL;
+                                break;
+                            case "inteiro":
+                                param_types[i] = LAType.INTEGER;
+                                break;
+                            case "real":
+                                param_types[i] = LAType.REAL;
+                                break;
+                            case "logico":
+                                param_types[i] = LAType.LOGICAL;
+                                break;
+                            default:
+                                // unreachable
+                                param_types[i] = LAType.INVALID;
+                                break;
+                        }}
+                
+                    scopes.currentScope().add(param_name, param_types[i]);
+                }
+
+                scopes.createNewScope();
+
+                int param_count = 0;
+                for (LAParser.ParametroContext param: ctx.parametros().parametro()) {
+
+                    scopes.currentScope().add(
+                        param.identificador(0).getText(),
+                        param_types[param_count]
+                    );
+
+                    param_count = param_count + 1;
+                }
+                
+                /*
+                 * Manually executing the rest of the
+                 * visitDeclaracao_global call
+                 */
+                super.visitParametros(ctx.parametros());
+                super.visitTipo_estendido(ctx.tipo_estendido());
+                for (LAParser.Declaracao_localContext dlc: ctx.declaracao_local())
+                    super.visitDeclaracao_local(dlc);
+                for (LAParser.CmdContext cc: ctx.cmd())
+                    super.visitCmd(cc);
+                /*
+                 * "Exiting" visitDeclaracao_global
+                 */
+                
+                scopes.abandonScope();
+            }
+        }
+
+        return null;
     }
 
     // TODO: comment thorougly
@@ -95,6 +280,88 @@ public class LASemantic extends LABaseVisitor<Void> {
         }
 
         return super.visitTipo_basico_ident(ctx);
+    }
+
+    @Override
+    public Void visitParcela_unario(LAParser.Parcela_unarioContext ctx) {
+
+        /*
+         * HANDLES FUNCTION USAGE
+         * 
+         * Since functions, unlike procedures, commonly return a value,
+         * they are normally considered expressions. Therefore,
+         * we find them under the Parcela_unario rule.
+         */
+        if (ctx.IDENT() != null) {
+
+            if (!scopes.exists(ctx.IDENT().getText())) {
+                LASemanticUtils.addSemanticError(
+                    ctx.IDENT().getSymbol(),
+                    "funcao " + ctx.IDENT().getText() + " desconhecida"
+                );
+            }
+            /*
+             * If function exists...
+             */
+            else {
+
+                String fn_name = ctx.IDENT().getText();
+                SymbolTable fn_table = scopes.getTableFrom(fn_name);
+
+                /*
+                 * Retrieving only the types of the function's
+                 * arguments.
+                 * 
+                 * When using SymbolTable.getVariablesStartingWith,
+                 * the function's own name is retrieved back, so we
+                 * use a work around with .remove(fn_name). This
+                 * functionality could also be native to SymbolTable's
+                 * method.
+                 */
+                Map<String, LAType> fn_args_map = fn_table.getVariablesStartingWith(fn_name);
+                fn_args_map.remove(fn_name);
+
+                List<LAType> fn_args = new ArrayList<>(fn_args_map.values());
+
+                /*
+                 * If the amount of arguments expected is different
+                 * than the amount of arguments given, then error
+                 * out immediately and return.
+                 */
+                if (fn_args.size() != ctx.expressao().size()) {
+
+                    LASemanticUtils.addSemanticError(
+                        ctx.IDENT().getSymbol(),
+                        "incompatibilidade de parametros na chamada de " + ctx.IDENT().getText()
+                    );
+                     
+                    return super.visitParcela_unario(ctx);
+                }
+
+                /*
+                 * If not, if any of the arguments given has a
+                 * different type than expected, error out.
+                 */
+                int exp_count = 0;
+                for (LAParser.ExpressaoContext exp: ctx.expressao()) {
+                    LAType exp_type = LASemanticUtils.verifyType(scopes, exp);
+
+                    if (fn_args.get(exp_count) != exp_type) {
+
+                        LASemanticUtils.addSemanticError(
+                            ctx.IDENT().getSymbol(),
+                            "incompatibilidade de parametros na chamada de " + ctx.IDENT().getText()
+                        );
+
+                        break;
+                    }
+
+                    exp_count = exp_count + 1;
+                }
+            }
+        }
+
+        return super.visitParcela_unario(ctx);
     }
 
     // TODO: comment this func more thoroughly
@@ -283,6 +550,17 @@ public class LASemantic extends LABaseVisitor<Void> {
         scopes.abandonScope();
 
         return null;
+    }
+
+    @Override
+    public Void visitCmdChamada(LAParser.CmdChamadaContext ctx) {
+        
+        /*
+         * PROBABLY USED FOR PROCEDURE CALLS
+         */
+        System.out.println("\nIT'S A PROCEDURE!\n");
+        
+        return super.visitCmdChamada(ctx);
     }
 
 }
