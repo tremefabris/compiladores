@@ -32,6 +32,10 @@ public class Scopes {
         tableStack.pop();
     }
 
+    /*
+     * VERIFY EXISTENCE BY ITERATING
+     * OVER SYMBOL TABLES
+     */
     public boolean exists(String var_name) {
         for (SymbolTable st: tableStack)
             if (st.exists(var_name))
@@ -40,6 +44,10 @@ public class Scopes {
         return false;
     }
 
+    /*
+     * VERIFY TYPE BY ITERATING OVER
+     * SYMBOL TABLES
+     */
     public LAType verifyType(String var_name) {
         for (SymbolTable st: tableStack)
             if (st.exists(var_name))
@@ -48,6 +56,10 @@ public class Scopes {
         return LAType.INVALID;
     }
 
+    /*
+     * GET SYMBOL TABLE WHERE A CERTAIN
+     * VARIABLE IS STORED
+     */
     public SymbolTable getTableFrom(String var_name) {
         for (SymbolTable st: tableStack)
             if (st.exists(var_name))
