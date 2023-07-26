@@ -338,7 +338,10 @@ public class LASemanticUtils {
         return ret;
     }
 
-    // TODO: comment
+    /*
+     * CHECKS IF GIVEN IDENTIFIER IS PART OF A 
+     * REGISTER'S DECLARATION
+     */
     public static boolean isRegisterAttribute(LAParser.IdentificadorContext ctx) {
 
         boolean ret = (ctx.getParent().getParent() instanceof LAParser.RegistroContext);
@@ -346,30 +349,46 @@ public class LASemanticUtils {
 
     }
 
-    // TODO: comment
+    /*
+     * RETRIEVES A LIST OF VARIABLE NAMES TO
+     * PROPERLY CONSTRUCT REGISTERS
+     */
     public static List<String> getRegisterVariableNames(LAParser.IdentificadorContext ctx) {
 
         List<String> reg_var_names = new ArrayList<>();
 
-        ParserRuleContext ctx_ggfather = ctx.getParent()
-                                            .getParent()
-                                            .getParent()
-                                            .getParent();
+        ParserRuleContext ctx_gggfather = ctx.getParent()
+                                             .getParent()
+                                             .getParent()
+                                             .getParent();
 
-        if (ctx_ggfather instanceof LAParser.VariavelContext) {
+        /*
+         * If we are deep in a variavel rule...
+         */
+        if (ctx_gggfather instanceof LAParser.VariavelContext) {
 
             LAParser.VariavelContext
-            reg_decl_ctx = (LAParser.VariavelContext) ctx_ggfather;
+            reg_decl_ctx = (LAParser.VariavelContext) ctx_gggfather;
 
+            /*
+             * For each variable being created...
+             */
             for (LAParser.IdentificadorContext ic: reg_decl_ctx.identificador()) {
                 reg_var_names.add(ic.getText());
             }
 
-        } else if (ctx_ggfather instanceof LAParser.Declaracao_localContext) {
+        /*
+         * If we are deep in a custom type creation rule...
+         */
+        } else if (ctx_gggfather instanceof LAParser.Declaracao_localContext) {
 
             LAParser.Declaracao_localContext
-            reg_decl_ctx = (LAParser.Declaracao_localContext) ctx_ggfather;
+            reg_decl_ctx = (LAParser.Declaracao_localContext) ctx_gggfather;
 
+            /*
+             * Only one "variable" (custom type) being created
+             * at a time, so no need for for-loop.
+             */
             reg_var_names.add(reg_decl_ctx.IDENT().getText());
 
         }
@@ -378,12 +397,13 @@ public class LASemanticUtils {
         return reg_var_names;
     }
 
+    /*
+     * RETRIEVES A LIST OF VARIABLE NAMES TO
+     * PROPERLY CONSTRUCT CUSTOM TYPES
+     */
     public static List<String> getCustomTypeVariableNames(LAParser.Tipo_basico_identContext ctx) {
 
         /*
-         * CUSTOM TYPE VARIABLES THAT NEED TO BE
-         * PROPERLY INITIALIZED
-         * 
          * Here, we retrieve the identifier of variables
          * that need to be properly initialized for a
          * custom type.
@@ -427,27 +447,52 @@ public class LASemanticUtils {
         return ct_var_names;
     }
 
-    // TODO: comment
+    /*
+     * ARRAY VERIFICATION
+     */
     public static boolean isArray(LAParser.IdentificadorContext ctx) {
         String ident_text = ctx.getText();
 
+        /*
+         * Here, we consider every identifier that has
+         * both "[" and "]" as an array.
+         */
         return (
             ident_text.contains("[") &&
             ident_text.contains("]")
         );
     }
 
-    // TODO: comment
+    /*
+     * ARRAY SIZE (AND INDEX) RETRIEVAL
+     */
     public static String getArraySize(LAParser.IdentificadorContext ctx) {
         String ident_text = ctx.getText();
 
+        /*
+         * Basically just returning anything that's
+         * between brackets.
+         */
         return ident_text.substring(
                     ident_text.indexOf("[") + 1, ident_text.indexOf("]")
         );
     }
 
-    // TODO: comment
+    /*
+     * ARRAY IDENTIFIER TRANSFORMATION FOR
+     * SYMBOL TABLE LOOK-UP
+     */
     public static String formatArrayIdent(LAParser.IdentificadorContext ctx, boolean reverse) {
+        
+        /*
+         * Since our arrays are stored like "array.0" instead
+         * of "array[0]", we need to arrange such a
+         * transformation for visitors to use.
+         * 
+         * We also provide a reverse funcionality for exhibition
+         * to the client.
+         */
+        
         if (!reverse) {
             String array_ref = LASemanticUtils.getArraySize(ctx);
             String array_ident = ctx.getText().substring(0, ctx.getText().indexOf("["));
