@@ -56,7 +56,15 @@ public class SymbolTable {
         return table.get(name).type;
     }
 
-    // TODO: COMMENT
+    /*
+     * GET ALL VARIABLE NAMES AND TYPES THAT START
+     * WITH A GIVEN PREFIX
+     * 
+     * Useful for arrays, registers and custom types,
+     * since we store those variables as (in the first
+     * case) array.0, array.1, etc. So, to retrieve all
+     * elements of 'array', we use this function.
+     */
     public Map<String, LAType> getVariablesStartingWith(String prefix) {
 
         Map<String, LAType> vars = new HashMap<>();
