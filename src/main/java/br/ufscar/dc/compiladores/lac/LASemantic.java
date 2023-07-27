@@ -112,8 +112,6 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitDeclaracao_local(ctx);
     }
 
-    // TODO: comment thorougly
-    // TODO: remember this is for function and procedure's declarations
     @Override
     public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         
@@ -217,9 +215,16 @@ public class LASemantic extends LABaseVisitor<Void> {
                      */
                     LAParser.ParametroContext param = ctx.parametros().parametro(i);
 
+                    /*
+                     * If it's a pointer...
+                     */
                     if (param.tipo_estendido().getText().contains("^")) {
                         param_types[i] = LAType.PTR_INTEGER;
                     }
+
+                    /*
+                     * If it's a custom type...
+                     */
                     else if (param.tipo_estendido().tipo_basico_ident().IDENT() != null) {
                         if (!scopes.exists(
                                 param.tipo_estendido()
@@ -247,6 +252,10 @@ public class LASemantic extends LABaseVisitor<Void> {
                         }
                     }
                     else {
+
+                        /*
+                         * If it's a basic type...
+                         */
                         switch(ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()) {
                             case "literal":
                                 param_types[i] = LAType.LITERAL;
@@ -269,6 +278,11 @@ public class LASemantic extends LABaseVisitor<Void> {
                     scopes.currentScope().add(param_name, param_types[i]);
                 }
 
+                /*
+                 * Creating new scope so that
+                 * the logic inside a function's
+                 * body doesn't throw errors.
+                 */
                 scopes.createNewScope();
 
                 int param_count = 0;
@@ -304,8 +318,12 @@ public class LASemantic extends LABaseVisitor<Void> {
          * If not, we are dealing with a procedure...
          */
         else {
-
             String proc_name = ctx.IDENT().getText();
+            
+            /*
+             * Insert procedure's identifier in 
+             * our scopes.
+             */
             if (!scopes.exists(proc_name)) {
 
                 LAType proc_type = LAType.PROCEDURE;
@@ -334,20 +352,48 @@ public class LASemantic extends LABaseVisitor<Void> {
         return null;
     }
 
-    // TODO: comment thorougly
-    // TODO: remember this is custom type instantiation
     @Override
     public Void visitTipo_basico_ident(LAParser.Tipo_basico_identContext ctx) {
 
+        /*
+         * HANDLES THE PROPER INTIIALIZATION OF
+         * CUSTOM TYPE VARIABLES
+         * 
+         * The actual type is created in 
+         * visitDeclaracao_local, but the variables
+         * who are assigned the custom type are
+         * properly instantiated here (e.g. its
+         * attributes)
+         */
+
+        /*
+         * If it's a custom type variable...
+         */
         if (ctx.IDENT() != null) {
 
             String type_text = ctx.IDENT().getText();
 
             if (scopes.exists(type_text)) {
                 
+                /*
+                 * Mapping to store all the attributes
+                 * that come with the custom type,
+                 * consisting of <attribute name,
+                 * attribute type>
+                 */
                 Map<String, LAType> ct_fields;
+
+                /*
+                 * List of variable names that need to
+                 * receive the custom type proper
+                 * initialization
+                 */
                 List<String> ct_var_names = LASemanticUtils.getCustomTypeVariableNames(ctx);
 
+                /*
+                 * Remove the custom type's own name
+                 * from var_names
+                 */
                 boolean contains_type = false;
                 for (String var_name: ct_var_names) {
                     if (var_name.equals(type_text))
@@ -356,11 +402,24 @@ public class LASemantic extends LABaseVisitor<Void> {
                 if (contains_type)
                     ct_var_names.remove(type_text);
 
+
+                /*
+                 * Symbol Table in which the custom
+                 * type was created.
+                 * 
+                 * All its attributes are also stored
+                 * in the same table, so we need to
+                 * retrieve it.
+                 */
                 SymbolTable type_table;
 
                 if ((type_table = scopes.getTableFrom(type_text)) != null) {
                     ct_fields = type_table.getVariablesStartingWith(type_text);
 
+                    /*
+                     * Remove the custom type's own name
+                     * from ct_fields
+                     */
                     contains_type = false;
                     for (Map.Entry<String, LAType> ct_field: ct_fields.entrySet()) {
                         if (ct_field.getKey().equals(type_text))
@@ -369,11 +428,26 @@ public class LASemantic extends LABaseVisitor<Void> {
                     if (contains_type)
                         ct_fields.remove(type_text);
 
+                    /*
+                     * For every variable that needs to be
+                     * properly instantiated...
+                     */
                     for (String var_name: ct_var_names) {
+
+                        /*
+                         * For every attribute that needs
+                         * to be inserted...
+                         */
                         for (Map.Entry<String, LAType> field: ct_fields.entrySet()) {
 
+                            /*
+                             * Get only the attribute name...
+                             */
                             String ct_field_suffix = field.getKey().split("\\.")[1];
 
+                            /*
+                             * ...and add it in the current scope.
+                             */
                             scopes.currentScope().add(
                                 var_name + "." + ct_field_suffix,
                                 field.getValue()
@@ -474,25 +548,36 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitParcela_unario(ctx);
     }
 
-    // TODO: comment this func more thoroughly
-    // TODO: holy shit what a god function
     @Override
     public Void visitVariavel(LAParser.VariavelContext ctx) {
 
         /*
          * HANDLES VARIABLE INITIALIZATION
          * 
-         * Adds semantic error if variable already exists. Only adds newly-
-         * -created variable to symbol table if its type is basic (tipo_basico).
+         * This function is used if, and only if, a variable
+         * needs to be created.
          * 
-         * Skips visitIdentificador()'s execution, since it handles IDENT's
-         * validation right here. This means that anything that accesses
-         * visitIdenticador() some other way is using that IDENT, not declaring
-         * it. 
+         * It handles the creation of these types of variables:
+         *     - basic type variables ('real', 'inteiro', etc);
+         *     - pointers;
+         *     - registers (both register attributes and register
+         *       variables);
+         *     - arrays.
+         * 
+         * Any time a variable is USED (as opposed to CREATED),
+         * it is actually visitIdentificador which handles that.
+         * Since we don't consider CREATION as a form of USE, we
+         * skip visitIdentificador inside this function.
          */
 
+        /*
+         * For every variable name being created...
+         */
         for (LAParser.IdentificadorContext ic: ctx.identificador()) {
 
+            /*
+             * If name already exists, error out
+             */
             if (scopes.exists(ic.IDENT(0).getText()))
                 LASemanticUtils.addSemanticError(
                     ic.IDENT(0).getSymbol(),
@@ -501,6 +586,10 @@ public class LASemantic extends LABaseVisitor<Void> {
 
             else {
                 LAType var_type = null;
+
+                /*
+                 * If one of these basic types...
+                 */
                 switch(ctx.tipo().getText()) {
 
                     case "literal":
@@ -529,10 +618,11 @@ public class LASemantic extends LABaseVisitor<Void> {
                         break;
                 }
                 /*
-                 * If it's a custom type, it has matched the previous
-                 * switch's default branch and var_type is now INVALID.
+                 * If it's an array of custom types, it has 
+                 * matched the previous 'default' branch and
+                 * now is LAType.INVALID.
                  * 
-                 * This prevents such from being the case.
+                 * This if prevents this from being the case.
                  */
                 if (
                     LASemanticUtils.isArray(ic) &&
@@ -541,7 +631,11 @@ public class LASemantic extends LABaseVisitor<Void> {
                     var_type = LAType.TYPE;                    
                 }
 
-
+                /*
+                 * If it's a register attribute, recover all
+                 * variables that are this register and create
+                 * such attribute for them.
+                 */
                 if (LASemanticUtils.isRegisterAttribute(ic)) {
 
                     List<String>
@@ -553,7 +647,14 @@ public class LASemantic extends LABaseVisitor<Void> {
                         scopes.currentScope().add(var_name, var_type);
                     }
 
-                } else if (LASemanticUtils.isArray(ic)) {
+                }
+
+                /*
+                 * If it's an array, create N variables of
+                 * same type and same name prefix, where N
+                 * is the size given.
+                 */
+                else if (LASemanticUtils.isArray(ic)) {
 
                     // the following was done because of test case 6,
                     // where valor[maximoElementos] appears
@@ -576,7 +677,13 @@ public class LASemantic extends LABaseVisitor<Void> {
                     
                     }
 
-                } else {
+                }
+                
+                /*
+                 * If none of the above, it's just a simple
+                 * variable...
+                 */
+                else {
                     String var_name = ic.IDENT(0).getText();
                     scopes.currentScope().add(var_name, var_type);
                 }
@@ -586,19 +693,38 @@ public class LASemantic extends LABaseVisitor<Void> {
         return super.visitTipo(ctx.tipo());  // Skips visitIdentificador
     }
 
-    // TODO: comment thorougly
     @Override
     public Void visitIdentificador(LAParser.IdentificadorContext ctx) {
         
+        /*
+         * HANDLES VARIABLE USAGE
+         * 
+         * Every time a variable is USED (as opposed to CREATED),
+         * this functions handles it.
+         */
+
         String ident_name;
 
+        /*
+         * If the variable in question is an array,
+         * retrieve it's formatted name (the one
+         * actually stored in Scopes)
+         */
         if (LASemanticUtils.isArray(ctx)) {
             ident_name = LASemanticUtils.formatArrayIdent(ctx, false);
         }
+
+        /*
+         * Otherwise, just get the context's text...
+         */
         else {
             ident_name = ctx.getText();
         }
 
+        /*
+         * If variable doesn't exist in scope,
+         * error out
+         */
         if (!scopes.exists(ident_name))
             LASemanticUtils.addSemanticError(
                 ctx.IDENT(0).getSymbol(),
