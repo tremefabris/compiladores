@@ -131,7 +131,7 @@ public class Principal {
 
                     for (String error: LASemanticUtils.semanticErrors) {
                         outputWriter.println(error);
-                        System.out.println(error);
+                        // System.out.println(error);
                     }
 
                 } catch (ParseCancellationException e) {
