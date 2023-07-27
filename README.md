@@ -15,20 +15,19 @@ Professor: [Daniel Lucrédio](https://github.com/dlucredio)
 - [X] T1
 - [X] T2
 - [X] T3
-- [ ] T4
+- [X] T4
 - [ ] T5
 
 ## Descrição
 
 Este repositório consiste da construção de um compilador para a Linguagem Algorítmica (LA), desenvolvida pelo prof. Jander Moreira. Por se tratar de um esforço prolongado e contínuo durante toda a disciplina, o compilador evoluirá ao longo do tempo: primeiro foi adicionado um tratamento de tokens léxicos, depois regras sintáticas, semânticas, etc.
 
-### Para o T3
+### Para o T4
 
-Três novos arquivos são importantes:
-- `LASemantic.java`: implementa regras semânticas da linguagem, principalmente no que concerne à identificação de erros;
-- `LASemanticUtils.java`: implementa funções utilitárias para a análise semântica, principalmente sobre a verificação de tipos em expressões, variáveis, etc; 
-- `SymbolTable.java`: implementa uma tabela de símbolos para armazenar variáveis (nomes) e seus tipos, além de funções utilitárias para a mesma.
-
+Um novo arquivo, `Scopes.java`, que realiza a lógica de armazenamento de diferentes escopos de código, foi incluído. Os arquivos importantes para o T3 permanecem assim, agora com novas adições:
+- `LASemantic.java`: realiza todo o tratamento de erros através dos visitantes, sendo responsável por lidar com criação de variáveis, arrays, registros, funções, procedimentos, atribuções, laços de repetição, etc;
+- `LASemanticUtils.java`: implementa funções utilitárias para a análise semântica, mas agora foi expandido para ajudar em situações específicas (como recuperar os atributos que devem pertencer a variáveis de tal registro);
+- `SymbolTable.java`: mudou um pouco (uma nova função para recuperar variáveis com um determinado prefixo em comum), mas em geral continua o mesmo.
 
 ## Acessar versões anteriores
 
@@ -36,6 +35,7 @@ Para acessar versões anteriores do presente repositório (por exemplo, quando a
 
 - [Finalização do T1](https://github.com/tremefabris/compiladores/tree/28eda28771fb2112ddda98270b558ebae4d1d6f3);
 - [Finalização do T2](https://github.com/tremefabris/compiladores/tree/a98b56b5c3d3da7617205f4258228c57e748445d);
+- [Finalização do T3](https://github.com/tremefabris/compiladores/tree/c8ff1f114965b39c0ab407304df35ec087d4c9f3).
 
 ## Requerimentos
 
