@@ -367,7 +367,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitFator_logico(Fator_logicoContext ctx){
-        if(ctx.getText() != " " + ctx.parcela_logica().getText()){//comparação ruim, para ver se tem o não
+        if(ctx.getText().startsWith(" nao")){//comparação ruim, para ver se tem o não
             saida.append("!");
             
 
