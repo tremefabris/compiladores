@@ -1399,6 +1399,8 @@ public class LAParser extends Parser {
 	}
 
 	public static class CmdSeContext extends ParserRuleContext {
+		public CmdContext comandose;
+		public CmdContext comandosenao;
 		public ExpressaoContext expressao() {
 			return getRuleContext(ExpressaoContext.class,0);
 		}
@@ -1434,7 +1436,7 @@ public class LAParser extends Parser {
 				{
 				{
 				setState(310);
-				cmd();
+				((CmdSeContext)_localctx).comandose = cmd();
 				}
 				}
 				setState(315);
@@ -1455,7 +1457,7 @@ public class LAParser extends Parser {
 					{
 					{
 					setState(317);
-					cmd();
+					((CmdSeContext)_localctx).comandosenao = cmd();
 					}
 					}
 					setState(322);

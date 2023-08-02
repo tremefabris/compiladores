@@ -14,6 +14,7 @@ import br.ufscar.dc.compiladores.lac.LAParser.CmdFacaContext;
 import br.ufscar.dc.compiladores.lac.LAParser.CmdLeiaContext;
 import br.ufscar.dc.compiladores.lac.LAParser.CmdParaContext;
 import br.ufscar.dc.compiladores.lac.LAParser.CmdRetorneContext;
+import br.ufscar.dc.compiladores.lac.LAParser.CmdSeContext;
 import br.ufscar.dc.compiladores.lac.LAParser.Decl_local_globalContext;
 import br.ufscar.dc.compiladores.lac.LAParser.Declaracao_localContext;
 import br.ufscar.dc.compiladores.lac.LAParser.Exp_aritmeticaContext;
@@ -44,7 +45,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         // inicio basico do c
         saida.append("#include <stdio.h>\n");
         saida.append("#include <stlib.h>\n");
-        saida.append("\n");
+        saida.append("\n\n");
 
         for (int i=0; i < ctx.declaracoes().decl_local_global().size(); i++){
             Decl_local_globalContext dec = ctx.declaracoes().decl_local_global(i);
@@ -71,7 +72,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         }
         
 
-        saida.append("return 0;");
+        saida.append("return 0;\n");
         saida.append("}\n");
 
         return null;
@@ -332,7 +333,15 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         visitExpressao(ctx.expressao());
 
         saida.append("){\n");
-        //TODO: fazer os comandos do laço de repetição
+        
+        for (int q=0; q<ctx.cmd().size() ; q++){
+            visitCmd(ctx.cmd(q));
+        }
+        
+        saida.append("}\n");
+
+
+       
         return null;
     }
 
@@ -422,12 +431,48 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitCmdEscreva(CmdEscrevaContext ctx){
+        
+
+
+        
+        //for(int s=0; s<ctx.expressao().size(); s++){
+            /*TODO: corrigir o printf
+            if (ctx.expressao(s).termo_logico(0).fator_logico(0).parcela_logica().exp_relacional().exp_aritmetica(0).termo(0).fator(0).parcela(0).parcela_unario().NUM_REAL() !=null){
+                saida.append("printf( \"%f\" ,");
+                visitExpressao(ctx.expressao(s));
+                saida.append(");\n");
+            }else{
+                if(ctx.expressao(s).termo_logico(0).fator_logico(0).parcela_logica().exp_relacional().exp_aritmetica(0).termo(0).fator(0).parcela(0).parcela_nao_unario().CADEIA() !=null){
+                    saida.append("printf( \"%s\" ,");
+                    visitExpressao(ctx.expressao(s));
+                    saida.append(");\n");
+                }else{
+                    saida.append("printf( \"%d\" ,");
+                    visitExpressao(ctx.expressao(s));
+                    saida.append(");\n");
+                }
+        }*/        
+        //saida.append("printf( \"%d\" ,");
+        //visitExpressao(ctx.expressao(s));
+        //saida.append(");\n");
+            
+        //}
         return null;
 
     }
 
     @Override
     public Void visitCmdFaca(CmdFacaContext ctx){
+        saida.append("do(");
+        
+        for(int r=0; r < ctx.cmd().size(); r++){
+            visitCmd(ctx.cmd(r));
+        }
+        
+        saida.append(") while( !");
+        visitExpressao(ctx.expressao());
+        saida.append(");\n");
+
         return null;
     }
 
@@ -442,6 +487,12 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         String valour = ctx.expressao().getText();
 
         saida.append("return "+ valour + ";\n");
+        return null;
+    }
+
+    @Override
+    public Void visitCmdSe(CmdSeContext ctx){
+
         return null;
     }
 
