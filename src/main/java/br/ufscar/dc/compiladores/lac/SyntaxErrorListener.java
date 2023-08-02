@@ -24,7 +24,7 @@ public class SyntaxErrorListener implements ANTLRErrorListener {
     @Override
     public void reportAmbiguity(Parser arg0, DFA arg1, int arg2, int arg3, boolean arg4, BitSet arg5,
             ATNConfigSet arg6) {
-        // TODO: Not necessary for T2
+        // TODO: Not necessary for T2  
     }
 
     @Override

@@ -56,6 +56,8 @@ public class Scopes {
         return LAType.INVALID;
     }
 
+    
+
     /*
      * GET SYMBOL TABLE WHERE A CERTAIN
      * VARIABLE IS STORED

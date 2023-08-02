@@ -90,6 +90,7 @@ public class Principal {
             LALexer lex = new LALexer(cs);
             CommonTokenStream tokens = new CommonTokenStream(lex);
             LAParser parser = new LAParser(tokens);
+            ProgramaContext prog = parser.programa();
 
             /* Creating output file to write results */
             String outputFilename = args[1];
@@ -139,7 +140,9 @@ public class Principal {
                 }
             }
 
-            outputWriter.println("Fim da compilacao");
+            LAGeradorC ger = new LAGeradorC();
+            ger.visitPrograma(prog);
+            outputWriter.print(ger.saida.toString());
             outputWriter.close();
         } catch (IOException e) {
             e.printStackTrace();

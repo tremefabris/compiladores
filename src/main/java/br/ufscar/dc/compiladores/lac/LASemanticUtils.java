@@ -320,6 +320,16 @@ public class LASemanticUtils {
         }
     }
 
+    public static LAType 
+    verifyType(Scopes scopes, String varname){
+
+        return scopes.verifyType(varname);
+    }
+
+    
+
+    
+
     /*
      * TYPE INCOMPATIBILY VERIFICATION
      */
