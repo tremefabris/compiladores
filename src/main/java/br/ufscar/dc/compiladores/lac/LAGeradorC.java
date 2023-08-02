@@ -431,12 +431,41 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitCmdEscreva(CmdEscrevaContext ctx){
-        
+        for (int s=0; s<ctx.expressao().size(); s++){
+            saida.append("printf(");
+            String varname = ctx.expressao(s).getText();
+            LAType tipo = LASemanticUtils.verifyType(scopes, varname);
+            String aux = "";
+            switch(tipo){
+                case INTEGER:
+                    aux = "%d";
+                    break;
+                case REAL:
+                    aux = "%f";
+                    break;
+                case LOGICAL:
+                    aux = "%d";// scanf don't accept booleans
+                    break;
+                case LITERAL:
+                    aux = "%s";
+                    break;
+                case PTR_INTEGER:
+                    aux = "%d";
+                    break;    
+                default:
+                aux = "%d";
+                    break;    
+            }
+            
+            saida.append(aux + " , ");
+            visitExpressao(ctx.expressao(s));
+            saida.append(");\n");
+        }
 
 
-        
-        //for(int s=0; s<ctx.expressao().size(); s++){
-            /*TODO: corrigir o printf
+        /*TODO: corrigir o printf        
+        for(int s=0; s<ctx.expressao().size(); s++){
+            
             if (ctx.expressao(s).termo_logico(0).fator_logico(0).parcela_logica().exp_relacional().exp_aritmetica(0).termo(0).fator(0).parcela(0).parcela_unario().NUM_REAL() !=null){
                 saida.append("printf( \"%f\" ,");
                 visitExpressao(ctx.expressao(s));
@@ -451,12 +480,13 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                     visitExpressao(ctx.expressao(s));
                     saida.append(");\n");
                 }
-        }*/        
-        //saida.append("printf( \"%d\" ,");
-        //visitExpressao(ctx.expressao(s));
-        //saida.append(");\n");
+        }        
+        saida.append("printf( \"%d\" ,");
+        visitExpressao(ctx.expressao(s));
+        saida.append(");\n");
             
-        //}
+        }
+        */
         return null;
 
     }
