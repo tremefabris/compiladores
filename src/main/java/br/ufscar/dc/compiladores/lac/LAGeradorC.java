@@ -99,8 +99,32 @@ public class LAGeradorC extends LABaseVisitor<Void> {
     public Void visitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         // TODO: declarações globais
         if (ctx.tipo_estendido() != null){// é função
+            String nomedafuncao = ctx.IDENT().getText();
+            String tipofuncao = ctx.tipo_estendido().getText();
+            saida.append(tipofuncao + " " + nomedafuncao + "(" );
+            visitParametros(ctx.parametros());
+            saida.append("){ \n");
+            for (int i=0; i < ctx.declaracao_local().size(); i++ ){
+                visitDeclaracao_local(ctx.declaracao_local(i));
+            }
+            for (int j=0; j< ctx.cmd().size(); j++){
+                visitCmd(ctx.cmd(j));
+            }
+            saida.append("}\n\n");
+
 
         }else{// é procedimento
+            String nomedoprocedimento = ctx.IDENT().getText();
+            saida.append("void " + nomedoprocedimento + "(");
+            visitParametros(ctx.parametros());
+            saida.append(") { \n");
+            for (int i=0; i < ctx.declaracao_local().size(); i++ ){
+                visitDeclaracao_local(ctx.declaracao_local(i));
+            }
+            for (int j=0; j< ctx.cmd().size(); j++){
+                visitCmd(ctx.cmd(j));
+            }
+            saida.append("}\n\n");
 
         }
 
@@ -442,9 +466,6 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                     break;
                 case REAL:
                     aux = "%f";
-                    break;
-                case LOGICAL:
-                    aux = "%d";// scanf don't accept booleans
                     break;
                 case LITERAL:
                     aux = "%s";
