@@ -478,6 +478,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                     break;    
             }
             
+            
             saida.append(aux + " , ");
             visitExpressao(ctx.expressao(s));
             saida.append(");\n");

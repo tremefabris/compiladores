@@ -83,7 +83,7 @@ cmdCaso:
     'caso' exp_aritmetica 'seja' selecao ('senao' (cmd)*)? 'fim_caso' ;
 
 cmdPara: 
-    'para' IDENT '<-' exp_aritmetica 'ate' exp_aritmetica 'faca' (cmd)* 'fim_para' ;
+    'para' IDENT '<-' inicio=exp_aritmetica 'ate' fim=exp_aritmetica 'faca' (cmd)* 'fim_para' ;
 
 cmdEnquanto:
     'enquanto' expressao 'faca' (cmd)* 'fim_enquanto' ;
@@ -198,7 +198,7 @@ IDENT:
 
 fragment
 ESC_SEQ:
-    '\\"';
+    '\\"' | '\\n' ;
 
 CADEIA:
     '"' ( ESC_SEQ | ~( '"' | '\\' | '\n' | '\r') )* '"';
