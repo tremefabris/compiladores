@@ -114,7 +114,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                 case "literal":                    
                     tipofuncao = "char";
                     break;
-                case "inteiro ":
+                case "inteiro":
                     tipofuncao = "int";
                     break;
                 case "real":
@@ -177,7 +177,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                 case "literal":                    
                     tipovar = "char*";
                     break;
-                case "inteiro ":
+                case "inteiro":
                     tipovar = "int";
                     break;
                 case "real":
