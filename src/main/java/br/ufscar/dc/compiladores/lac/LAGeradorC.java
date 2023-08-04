@@ -701,6 +701,18 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
     @Override
     public Void visitCmdSe(CmdSeContext ctx){
+        int i;
+        saida.append("if(");
+        visitExpressao(ctx.expressao());
+        saida.append("){\n");
+        for (i = 0 ; i< ctx.comandose.size(); i++){
+            visitCmd(ctx.cmd(i));
+        }
+        saida.append("} else{\n");
+        for(int j = 0; j<ctx.comandosenao.size(); j++){
+            visitCmd(ctx.cmd(j+i));
+        }
+        saida.append("}\n");
 
         return null;
     }
