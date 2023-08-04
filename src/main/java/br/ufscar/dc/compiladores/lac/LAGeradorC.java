@@ -44,7 +44,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
 
         // inicio basico do c
         saida.append("#include <stdio.h>\n");
-        saida.append("#include <stlib.h>\n");
+        saida.append("#include <stdlib.h>\n");
         saida.append("\n\n");
 
         for (int i=0; i < ctx.declaracoes().decl_local_global().size(); i++){
@@ -101,6 +101,22 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         if (ctx.tipo_estendido() != null){// é função
             String nomedafuncao = ctx.IDENT().getText();
             String tipofuncao = ctx.tipo_estendido().getText();
+            switch (tipofuncao) {
+                case "literal":                    
+                    tipofuncao = "char";
+                    break;
+                case "inteiro ":
+                    tipofuncao = "int";
+                    break;
+                case "real":
+                    tipofuncao= "float";
+                    break;
+                case "logico":
+                    tipofuncao = "bool";
+                    break;
+
+            }
+
             saida.append(tipofuncao + " " + nomedafuncao + "(" );
             visitParametros(ctx.parametros());
             saida.append("){ \n");
@@ -187,7 +203,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
             switch (strtipo) {
                 case "literal":
                     tipo = LAType.LITERAL;
-                    strtipo = "string";
+                    strtipo = "char";
                     break;
                 case "inteiro":
                     tipo = LAType.INTEGER;
@@ -212,6 +228,10 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                 
                 String varname = ctx.identificador(l).getText();
                 saida.append(varname);
+                if(strtipo == "char"){
+                    saida.append("[100]");
+
+                }
                 table.add(varname, tipo);
                 
             }          
@@ -281,9 +301,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
     public Void visitCmdLeia(CmdLeiaContext ctx){
         saida.append("scanf(\"");
         for(int m=0; m<ctx.identificador().size(); m++ ){
-            if(m!=0){
-                saida.append( ", ");
-            }
+            
             String varname = ctx.identificador(m).getText();
             LAType tipo = LASemanticUtils.verifyType(scopes, varname);
             String aux = "";
@@ -324,10 +342,10 @@ public class LAGeradorC extends LABaseVisitor<Void> {
             String varname = ctx.identificador(n).getText();
             LAType tipo = LASemanticUtils.verifyType(scopes, varname);
             if (tipo == LAType.LITERAL || tipo == LAType.PTR_INTEGER || tipo == LAType.MEM_ADDR ){
-                saida.append(varname);
+                saida.append(", " +varname);
 
             }else{
-                saida.append("&" + varname);
+                saida.append(", &" + varname);
             }
             
         }
@@ -457,8 +475,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
     public Void visitCmdEscreva(CmdEscrevaContext ctx){
         for (int s=0; s<ctx.expressao().size(); s++){
             saida.append("printf(");
-            String varname = ctx.expressao(s).getText();
-            LAType tipo = LASemanticUtils.verifyType(scopes, varname);
+            LAType tipo = LASemanticUtils.verifyType(scopes, ctx.expressao(s));
             String aux = "";
             switch(tipo){
                 case INTEGER:
@@ -478,36 +495,14 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                     break;    
             }
             
-            saida.append(aux + " , ");
+            saida.append("\"" + aux + "\", ");
             visitExpressao(ctx.expressao(s));
             saida.append(");\n");
         }
 
 
-        /*TODO: corrigir o printf        
-        for(int s=0; s<ctx.expressao().size(); s++){
-            
-            if (ctx.expressao(s).termo_logico(0).fator_logico(0).parcela_logica().exp_relacional().exp_aritmetica(0).termo(0).fator(0).parcela(0).parcela_unario().NUM_REAL() !=null){
-                saida.append("printf( \"%f\" ,");
-                visitExpressao(ctx.expressao(s));
-                saida.append(");\n");
-            }else{
-                if(ctx.expressao(s).termo_logico(0).fator_logico(0).parcela_logica().exp_relacional().exp_aritmetica(0).termo(0).fator(0).parcela(0).parcela_nao_unario().CADEIA() !=null){
-                    saida.append("printf( \"%s\" ,");
-                    visitExpressao(ctx.expressao(s));
-                    saida.append(");\n");
-                }else{
-                    saida.append("printf( \"%d\" ,");
-                    visitExpressao(ctx.expressao(s));
-                    saida.append(");\n");
-                }
-        }        
-        saida.append("printf( \"%d\" ,");
-        visitExpressao(ctx.expressao(s));
-        saida.append(");\n");
-            
-        }
-        */
+        //TODO: corrigir o printf        
+        
         return null;
 
     }
@@ -530,6 +525,11 @@ public class LAGeradorC extends LABaseVisitor<Void> {
     
     @Override
     public Void visitCmdPara(CmdParaContext ctx){
+        String contador = ctx.IDENT().getText();
+        String start = ctx.inicio.getText();
+        String end = ctx.fim.getText();
+        saida.append("int " + contador + ";\n");
+        saida.append("for (" + contador + "= 0 " + "; " + contador + " <= " );
         return null;
     }
 
