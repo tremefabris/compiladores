@@ -446,7 +446,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         visitTermo_logico(ctx.termo_logico(0));
         if (ctx.op_logico_1() != null){
             for (int o=0; o < ctx.op_logico_1().size() ; o++){
-                saida.append(" " +ctx.op_logico_1(o).getText() + " ");
+                saida.append(" || ");
                 visitTermo_logico(ctx.termo_logico(o+1));
 
             }
@@ -461,7 +461,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         visitFator_logico(ctx.fator_logico(0));
         if (ctx.op_logico_2() != null){
             for(int p =0; p < ctx.op_logico_2().size(); p++){
-                saida.append(ctx.op_logico_2(p) + " ");
+                saida.append(" && ");
                 visitFator_logico(ctx.fator_logico(p+1));
             }
         }
