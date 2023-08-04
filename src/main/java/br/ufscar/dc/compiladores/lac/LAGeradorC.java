@@ -110,6 +110,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
             String nomedafuncao = ctx.IDENT().getText();
             String tipofuncao = ctx.tipo_estendido().getText();
             switch (tipofuncao) {
+
                 case "literal":                    
                     tipofuncao = "char";
                     break;
@@ -122,6 +123,9 @@ public class LAGeradorC extends LABaseVisitor<Void> {
                 case "logico":
                     tipofuncao = "bool";
                     break;
+                default:
+                    
+                    break;    
 
             }
 
@@ -150,6 +154,48 @@ public class LAGeradorC extends LABaseVisitor<Void> {
             }
             saida.append("}\n\n");
 
+        }
+
+        return null;
+    }
+
+    
+    @Override
+    public Void visitParametros(LAParser.ParametrosContext ctx){
+        for(int i=0; i<ctx.parametro().size(); i++){
+            visitParametro(ctx.parametro(i));
+        }
+
+        return null;
+    }    
+
+    @Override
+    public Void visitParametro(LAParser.ParametroContext ctx){
+        String tipovar = ctx.tipo_estendido().getText();
+            switch (tipovar) {
+
+                case "literal":                    
+                    tipovar = "char*";
+                    break;
+                case "inteiro ":
+                    tipovar = "int";
+                    break;
+                case "real":
+                    tipovar= "float";
+                    break;
+                case "logico":
+                    tipovar = "bool";
+                    break;
+                default:
+                    
+                    break;    
+
+            }
+        for(int i=0; i<ctx.identificador().size(); i++){
+            if(i!=0){
+                saida.append(", ");
+            }
+            saida.append(tipovar + " " + ctx.identificador(i).getText());
         }
 
         return null;
@@ -275,7 +321,7 @@ public class LAGeradorC extends LABaseVisitor<Void> {
         }else if(ctx.cmdCaso() != null){
             visitCmdCaso(ctx.cmdCaso());
         }else if(ctx.cmdChamada() != null){
-            visitCmdCaso(ctx.cmdCaso());
+            visitCmdChamada(ctx.cmdChamada());
         }else if(ctx.cmdEnquanto() != null){
             visitCmdEnquanto(ctx.cmdEnquanto());
         }else if(ctx.cmdEscreva() != null){
@@ -580,6 +626,9 @@ public class LAGeradorC extends LABaseVisitor<Void> {
             saida.append("printf(");
             LAType tipo = LASemanticUtils.verifyType(scopes, ctx.expressao(s));
             String aux = "";
+            if (tipo==null){
+                tipo = LAType.LITERAL;//estou presumindo que se a função aciuma falhou é uma cadeia
+            }
             switch(tipo){
                 case INTEGER:
                     aux = "%d";
